@@ -1,66 +1,74 @@
 package com.example.projectv2_android.fragments;
 
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.projectv2_android.R;
+import com.example.projectv2_android.adapters.ClassesListAdapter;
+import com.example.projectv2_android.controllers.ClassController;
+import com.example.projectv2_android.dialogs.AddClassDialogFragment;
+import com.example.projectv2_android.models.Class;
+import com.example.projectv2_android.repositories.ClassRepository;
+import com.example.projectv2_android.db.AppDatabase;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link ClassesListFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
-public class ClassesListFragment extends Fragment {
+import java.util.List;
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+public class ClassesListFragment extends Fragment implements ClassesListAdapter.OnClassInteractionListener {
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private RecyclerView recyclerView;
+    private ClassesListAdapter adapter;
+    private ClassController classController;
 
-    public ClassesListFragment() {
-        // Required empty public constructor
+    public interface ClassesListNavigator {
+        void openStudentsList(long classId);
+        void openEvaluationsList(long classId);
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment ClassesListFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static ClassesListFragment newInstance(String param1, String param2) {
-        ClassesListFragment fragment = new ClassesListFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_classes_list, container, false);
+
+        recyclerView = view.findViewById(R.id.recycler_classes);
+        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+
+        ClassRepository classRepository = new ClassRepository(AppDatabase.getInstance(requireContext()).classDao());
+        classController = new ClassController(classRepository);
+
+        adapter = new ClassesListAdapter(this);
+        recyclerView.setAdapter(adapter);
+
+        loadClasses();
+
+        view.findViewById(R.id.fab_add_class).setOnClickListener(v -> {
+            AddClassDialogFragment dialog = new AddClassDialogFragment();
+            dialog.setOnClassAddedListener(this::loadClasses);
+            dialog.show(getParentFragmentManager(), "AddClassDialog");
+        });
+
+        return view;
+    }
+
+    private void loadClasses() {
+        List<Class> classes = classController.getAllClasses();
+        adapter.setData(classes);
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+    public void onClassInteraction(long classId, boolean viewEvaluations) {
+        if (viewEvaluations) {
+            // Navigate to EvaluationsListFragment
+        } else {
+            // Navigate to StudentsListFragment
         }
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_classes_list, container, false);
     }
 }

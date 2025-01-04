@@ -17,4 +17,6 @@
     <string name="save_note">Sauvegarder la note</string>
     <string name="enter_force_average">Entrez la note à forcer</string>
     <string name="force_average">Forcer la note</string>
+    <string name="view_evaluations">Voir évaluations</string>
+    <string name="view_students">Voir étudiants</string>
 </resources>

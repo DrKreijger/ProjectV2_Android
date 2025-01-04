@@ -2,23 +2,82 @@ package com.example.projectv2_android;
 
 import android.os.Bundle;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import androidx.fragment.app.FragmentManager;
 
-public class MainActivity extends AppCompatActivity {
+import com.example.projectv2_android.fragments.ClassesListFragment;
+import com.example.projectv2_android.fragments.EvaluationsListFragment;
+import com.example.projectv2_android.fragments.StudentsListFragment;
+import com.example.projectv2_android.fragments.StudentDetailFragment;
+import com.example.projectv2_android.fragments.EvaluationDetailFragment;
+
+public class MainActivity extends AppCompatActivity
+        implements ClassesListFragment.ClassesListNavigator,
+        EvaluationsListFragment.EvaluationsListNavigator,
+        StudentsListFragment.StudentsListNavigator,
+        EvaluationDetailFragment.EvaluationDetailNavigator {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+
+        if (savedInstanceState == null) {
+            // Load the starting fragment: ClassesListFragment
+            ClassesListFragment fragment = new ClassesListFragment();
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, fragment)
+                    .commit();
+        }
+    }
+
+    @Override
+    public void openStudentsList(long classId) {
+        StudentsListFragment fragment = StudentsListFragment.newInstance(classId);
+        getSupportFragmentManager().beginTransaction()
+                .setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right)
+                .replace(R.id.fragment_container, fragment)
+                .addToBackStack(null)
+                .commit();
+    }
+
+    @Override
+    public void openEvaluationsList(long classId) {
+        EvaluationsListFragment fragment = EvaluationsListFragment.newInstance(classId);
+        getSupportFragmentManager().beginTransaction()
+                .setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right)
+                .replace(R.id.fragment_container, fragment)
+                .addToBackStack(null)
+                .commit();
+    }
+
+    @Override
+    public void openEvaluationDetail(long evalId) {
+        EvaluationDetailFragment fragment = EvaluationDetailFragment.newInstance(evalId);
+        getSupportFragmentManager().beginTransaction()
+                .setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right)
+                .replace(R.id.fragment_container, fragment)
+                .addToBackStack(null)
+                .commit();
+    }
+
+    @Override
+    public void openStudentDetail(long studentId, long evalId) {
+        StudentDetailFragment fragment = StudentDetailFragment.newInstance(studentId, evalId);
+        getSupportFragmentManager().beginTransaction()
+                .setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right)
+                .replace(R.id.fragment_container, fragment)
+                .addToBackStack(null)
+                .commit();
+    }
+
+    @Override
+    public void onBackPressed() {
+        FragmentManager fm = getSupportFragmentManager();
+        if (fm.getBackStackEntryCount() > 0) {
+            fm.popBackStack();
+        } else {
+            super.onBackPressed();
+        }
     }
 }

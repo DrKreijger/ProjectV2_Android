@@ -20,6 +20,10 @@ public class NoteController {
         return noteRepository.getNoteForStudent(evalId, studentId);
     }
 
+    public List<Note> getNotesForStudent(long studentId) {
+        return noteRepository.getNotesForStudent(studentId);
+    }
+
     public long addNote(long evalId, long studentId, double noteValue) {
         Note note = new Note();
         note.setEvalId(evalId);

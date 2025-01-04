@@ -53,4 +53,12 @@ public class NoteRepository {
         }
         return noteDao.deleteNotesForStudent(studentId);
     }
+
+    public List<Note> getNotesForStudent(long studentId) {
+        if (studentId <= 0) {
+            throw new IllegalArgumentException("Invalid student ID");
+        }
+        return noteDao.getNotesForStudent(studentId);
+    }
+
 }

@@ -28,5 +28,9 @@ public interface NoteDao {
 
     @Query("DELETE FROM Note WHERE studentId = :studentId")
     int deleteNotesForStudent(long studentId);
+
+    @Query("SELECT * FROM Note WHERE studentId = :studentId")
+    List<Note> getNotesForStudent(long studentId);
+
 }
 

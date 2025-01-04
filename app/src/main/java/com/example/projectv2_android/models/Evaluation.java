@@ -1,5 +1,25 @@
 package com.example.projectv2_android.models;
 
+import androidx.room.Entity;
+import androidx.room.ForeignKey;
+
+@Entity(
+        tableName = "Evaluation",
+        foreignKeys = {
+                @ForeignKey(
+                        entity = Evaluation.class,
+                        parentColumns = "id",
+                        childColumns = "parent_id",
+                        onDelete = ForeignKey.CASCADE
+                ),
+                @ForeignKey(
+                        entity = Class.class,
+                        parentColumns = "id",
+                        childColumns = "class_id",
+                        onDelete = ForeignKey.CASCADE
+                )
+        }
+)
 public abstract class Evaluation {
     private long id;
     private Long parentId;
