@@ -34,6 +34,7 @@ android {
 dependencies {
 
     implementation(libs.room.runtime)
+    implementation(libs.room.common)
     annotationProcessor(libs.room.compiler)
     testImplementation(libs.room.testing)
     implementation(libs.appcompat)
