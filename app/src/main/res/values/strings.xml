@@ -1,3 +1,20 @@
 <resources>
     <string name="app_name">ProjectV2_Android</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="enter_class_name">Entrer le nom de la classe</string>
+    <string name="add_class">Ajouter la classe</string>
+    <string name="enter_student_first_name">Prénom de l\'étudiant</string>
+    <string name="enter_student_last_name">Nom de l\'étudiant</string>
+    <string name="enter_student_matricule">Matricule de l\'étudiant</string>
+    <string name="add_student">Ajouter l\'étudiant</string>
+    <string name="enter_evaluation_name">Nom de l\'évaluation</string>
+    <string name="enter_points_max">Points max de l\'évaluation</string>
+    <string name="has_sub_evaluations">Ajouter des sous évaluations</string>
+    <string name="add_evaluation">Ajouter l\'évaluation</string>
+    <string name="student_name">Nom de l\'étudiant</string>
+    <string name="enter_student_note">Entrez une note</string>
+    <string name="save_note">Sauvegarder la note</string>
+    <string name="enter_force_average">Entrez la note à forcer</string>
+    <string name="force_average">Forcer la note</string>
 </resources>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <EditText
+        android:id="@+id/input_student_first_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/enter_student_first_name"
+        android:inputType="text" />
+
+    <EditText
+        android:id="@+id/input_student_last_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/enter_student_last_name"
+        android:inputType="text" />
+
+    <EditText
+        android:id="@+id/input_student_matricule"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/enter_student_matricule"
+        android:inputType="text" />
+
+    <Button
+        android:id="@+id/btn_add_student"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/add_student" />
+</LinearLayout>
