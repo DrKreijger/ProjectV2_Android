@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -23,6 +24,7 @@ import com.example.projectv2_android.services.EvaluationService;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.List;
+import java.util.concurrent.Executors;
 
 public class EvaluationsListFragment extends Fragment {
 
@@ -65,7 +67,7 @@ public class EvaluationsListFragment extends Fragment {
         recyclerView = view.findViewById(R.id.recycler_view_evaluations);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
 
-//        adapter = new EvaluationsListAdapter(this::onEvaluationClicked);
+        adapter = new EvaluationsListAdapter(this::onEvaluationClicked);
         recyclerView.setAdapter(adapter);
 
         FloatingActionButton fabAddEvaluation = view.findViewById(R.id.fab_add_evaluation);
@@ -82,47 +84,54 @@ public class EvaluationsListFragment extends Fragment {
         return view;
     }
 
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        loadEvaluations();
-    }
-
     private void loadEvaluations() {
-        List<Evaluation> evaluations = evaluationController.getAllEvaluationsForClass(classId);
-        adapter.setData(evaluations);
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                List<Evaluation> evaluations = evaluationController.getAllEvaluationsForClass(classId);
+
+                requireActivity().runOnUiThread(() -> adapter.setData(evaluations));
+            } catch (Exception e) {
+                requireActivity().runOnUiThread(() ->
+                        Toast.makeText(requireContext(), "Erreur lors du chargement des évaluations", Toast.LENGTH_SHORT).show());
+            }
+        });
     }
 
-//    private void onEvaluationClicked(Evaluation evaluation) {
-//        if (evaluation.isLeaf()) {
-//            // Naviguer vers le détail de l'évaluation feuille
-//            if (getActivity() instanceof EvaluationsListNavigator) {
-//                ((EvaluationsListNavigator) getActivity()).openEvaluationDetail(evaluation.getId());
-//            }
-//        } else {
-//            // Charger et afficher les sous-évaluations pour l'évaluation parent
-//            List<Evaluation> subEvaluations = evaluationController.getChildEvaluations(evaluation.getId());
-//            adapter.setData(subEvaluations);
-//
-//            // Afficher le bouton "Retour" pour revenir aux évaluations parent
-//            FloatingActionButton fabBack = getView().findViewById(R.id.fab_back);
-//            if (fabBack != null) {
-//                fabBack.setVisibility(View.VISIBLE);
-//            }
-//        }
-//    }
+    private void onEvaluationClicked(Evaluation evaluation) {
+        if (evaluation.isLeaf()) {
+            if (getActivity() instanceof EvaluationsListNavigator) {
+                ((EvaluationsListNavigator) getActivity()).openEvaluationDetail(evaluation.getId());
+            }
+        } else {
+            Executors.newSingleThreadExecutor().execute(() -> {
+                try {
+                    List<Evaluation> subEvaluations = evaluationController.getChildEvaluations(evaluation.getId());
 
+                    requireActivity().runOnUiThread(() -> {
+                        adapter.setData(subEvaluations);
+                        FloatingActionButton fabBack = getView().findViewById(R.id.fab_back);
+                        if (fabBack != null) {
+                            fabBack.setVisibility(View.VISIBLE);
+                        }
+                    });
+                } catch (Exception e) {
+                    requireActivity().runOnUiThread(() ->
+                            Toast.makeText(requireContext(), "Erreur lors du chargement des sous-évaluations", Toast.LENGTH_SHORT).show());
+                }
+            });
+        }
+    }
 
     private void showParentEvaluations() {
-        List<Evaluation> evaluations = evaluationController.getAllEvaluationsForClass(classId);
-        adapter.setData(evaluations);
+        loadEvaluations();
 
-        // Cacher le bouton "Retour"
         FloatingActionButton fabBack = getView().findViewById(R.id.fab_back);
         if (fabBack != null) {
             fabBack.setVisibility(View.GONE);
         }
     }
 
+    public interface EvaluationsListNavigator {
+        void openEvaluationDetail(long evaluationId);
+    }
 }

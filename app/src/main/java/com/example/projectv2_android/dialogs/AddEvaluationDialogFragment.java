@@ -17,6 +17,12 @@ import androidx.fragment.app.DialogFragment;
 
 import com.example.projectv2_android.R;
 import com.example.projectv2_android.controllers.EvaluationController;
+import com.example.projectv2_android.db.AppDatabase;
+import com.example.projectv2_android.repositories.EvaluationRepository;
+import com.example.projectv2_android.repositories.NoteRepository;
+import com.example.projectv2_android.services.EvaluationService;
+
+import java.util.concurrent.Executors;
 
 public class AddEvaluationDialogFragment extends DialogFragment {
 
@@ -38,6 +44,22 @@ public class AddEvaluationDialogFragment extends DialogFragment {
         return fragment;
     }
 
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            classId = getArguments().getLong(ARG_CLASS_ID);
+        }
+
+        // Initialisation du contrôleur
+        EvaluationRepository evaluationRepository = new EvaluationRepository(
+                AppDatabase.getInstance(requireContext()).evaluationDao(),
+                new NoteRepository(AppDatabase.getInstance(requireContext()).noteDao())
+        );
+        EvaluationService evaluationService = new EvaluationService(evaluationRepository);
+        evaluationController = new EvaluationController(evaluationService);
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -57,15 +79,32 @@ public class AddEvaluationDialogFragment extends DialogFragment {
                 return;
             }
 
-            int pointsMax = Integer.parseInt(pointsMaxStr);
+            int pointsMax;
+            try {
+                pointsMax = Integer.parseInt(pointsMaxStr);
+            } catch (NumberFormatException e) {
+                Toast.makeText(getContext(), "Points maximum invalides", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             boolean hasSubEvaluations = checkBoxSubEvaluations.isChecked();
 
-            evaluationController.createEvaluation(name, classId, pointsMax, hasSubEvaluations, null);
+            // Exécuter l'ajout dans un thread en arrière-plan
+            Executors.newSingleThreadExecutor().execute(() -> {
+                long evaluationId = evaluationController.createEvaluation(name, classId, pointsMax, hasSubEvaluations, null);
 
-            if (listener != null) {
-                listener.onEvaluationAdded();
-            }
-            dismiss();
+                requireActivity().runOnUiThread(() -> {
+                    if (evaluationId > 0) {
+                        Toast.makeText(getContext(), "Évaluation ajoutée avec succès", Toast.LENGTH_SHORT).show();
+                        if (listener != null) {
+                            listener.onEvaluationAdded();
+                        }
+                        dismiss();
+                    } else {
+                        Toast.makeText(getContext(), "Erreur lors de l'ajout de l'évaluation", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            });
         });
 
         return view;

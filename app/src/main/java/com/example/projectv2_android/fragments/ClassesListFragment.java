@@ -85,10 +85,13 @@ public class ClassesListFragment extends Fragment implements ClassesListAdapter.
 
     @Override
     public void onClassInteraction(long classId, boolean viewEvaluations) {
-        if (viewEvaluations) {
-            // Navigate to EvaluationsListFragment
-        } else {
-            // Navigate to StudentsListFragment
+        if (getActivity() instanceof ClassesListNavigator) {
+            if (viewEvaluations) {
+                ((ClassesListNavigator) getActivity()).openEvaluationsList(classId);
+            } else {
+                ((ClassesListNavigator) getActivity()).openStudentsList(classId);
+            }
         }
     }
+
 }
