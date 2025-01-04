@@ -1,66 +1,77 @@
 package com.example.projectv2_android.dialogs;
 
+import android.app.Dialog;
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
 
 import com.example.projectv2_android.R;
+import com.example.projectv2_android.controllers.EvaluationController;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link AddEvaluationDialogFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
-public class AddEvaluationDialogFragment extends Fragment {
+public class AddEvaluationDialogFragment extends DialogFragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private static final String ARG_CLASS_ID = "classId";
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private long classId;
+    private EvaluationController evaluationController;
+    private OnEvaluationAddedListener listener;
 
-    public AddEvaluationDialogFragment() {
-        // Required empty public constructor
+    public interface OnEvaluationAddedListener {
+        void onEvaluationAdded();
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment AddEvaluationDialogFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static AddEvaluationDialogFragment newInstance(String param1, String param2) {
+    public static AddEvaluationDialogFragment newInstance(long classId) {
         AddEvaluationDialogFragment fragment = new AddEvaluationDialogFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
+        args.putLong(ARG_CLASS_ID, classId);
         fragment.setArguments(args);
         return fragment;
     }
 
+    @Nullable
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.dialog_add_evaluation, container, false);
+
+        EditText inputName = view.findViewById(R.id.input_evaluation_name);
+        EditText inputPointsMax = view.findViewById(R.id.input_evaluation_points_max);
+        CheckBox checkBoxSubEvaluations = view.findViewById(R.id.checkbox_has_sub_evaluations);
+        Button btnAdd = view.findViewById(R.id.btn_add_evaluation);
+
+        btnAdd.setOnClickListener(v -> {
+            String name = inputName.getText().toString().trim();
+            String pointsMaxStr = inputPointsMax.getText().toString().trim();
+
+            if (TextUtils.isEmpty(name) || TextUtils.isEmpty(pointsMaxStr)) {
+                Toast.makeText(getContext(), R.string.error_fill_all_fields, Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            int pointsMax = Integer.parseInt(pointsMaxStr);
+            boolean hasSubEvaluations = checkBoxSubEvaluations.isChecked();
+
+            evaluationController.createEvaluation(name, classId, pointsMax, hasSubEvaluations, null);
+
+            if (listener != null) {
+                listener.onEvaluationAdded();
+            }
+            dismiss();
+        });
+
+        return view;
     }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.dialog_add_evaluation, container, false);
+    public void setOnEvaluationAddedListener(OnEvaluationAddedListener listener) {
+        this.listener = listener;
     }
 }

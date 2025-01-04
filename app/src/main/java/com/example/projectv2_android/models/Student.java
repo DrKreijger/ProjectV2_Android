@@ -3,6 +3,7 @@ package com.example.projectv2_android.models;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.ForeignKey;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
 @Entity(
@@ -18,13 +19,13 @@ public class Student {
     @PrimaryKey(autoGenerate = true)
     private long id;
 
-    @ColumnInfo(name = "classId")
+    @ColumnInfo(name = "class_id")
     private long classId; // ID de la classe de l'étudiant
 
     @ColumnInfo(name = "name")
     private String name;
 
-    @ColumnInfo(name = "firstName")
+    @ColumnInfo(name = "first_name")
     private String firstName;
 
     @ColumnInfo(name = "matricule")
@@ -35,6 +36,7 @@ public class Student {
     }
 
     // Constructeur complet
+    @Ignore
     public Student(String name, String firstName, String matricule, long classId) {
         this.name = name;
         this.firstName = firstName;

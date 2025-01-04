@@ -6,17 +6,20 @@
     android:orientation="vertical"
     android:padding="16dp">
 
+    <!-- RecyclerView pour afficher les étudiants -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view_students"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1" />
 
+    <!-- FloatingActionButton pour ajouter un étudiant -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_add_student"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="end|bottom"
         android:layout_margin="16dp"
-        android:src="@drawable/ic_add" />
+        android:src="@drawable/ic_add"
+        android:contentDescription="@string/add_student" />
 </LinearLayout>

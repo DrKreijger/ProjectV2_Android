@@ -1,32 +1,42 @@
 package com.example.projectv2_android.controllers;
 
 import com.example.projectv2_android.models.Class;
-import com.example.projectv2_android.repositories.ClassRepository;
+import com.example.projectv2_android.services.ClassService;
 
 import java.util.List;
 
 public class ClassController {
-    private final ClassRepository classRepository;
+    private final ClassService classService;
 
-    public ClassController(ClassRepository classRepository) {
-        this.classRepository = classRepository;
+    public ClassController(ClassService classService) {
+        this.classService = classService;
     }
 
+    /**
+     * Récupère toutes les classes (blocs).
+     */
     public List<Class> getAllClasses() {
-        return classRepository.getAllClasses();
+        return classService.getAllClasses();
     }
 
-    public long createClass(String name) {
-        Class cls = new Class();
-        cls.setName(name);
-        return classRepository.insertClass(cls);
+    /**
+     * Ajoute une nouvelle classe.
+     */
+    public long addClass(String name) {
+        return classService.createClass(name);
     }
 
-    public Class findClassById(long classId) {
-        return classRepository.findById(classId);
+    /**
+     * Trouve une classe par son ID.
+     */
+    public Class getClassById(long classId) {
+        return classService.findClassById(classId);
     }
 
-    public boolean deleteClass(long classId) {
-        return classRepository.deleteClass(classId) > 0;
+    /**
+     * Supprime une classe.
+     */
+    public boolean removeClass(long classId) {
+        return classService.deleteClass(classId);
     }
 }

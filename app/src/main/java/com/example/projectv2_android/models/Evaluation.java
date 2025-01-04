@@ -1,25 +1,5 @@
 package com.example.projectv2_android.models;
 
-import androidx.room.Entity;
-import androidx.room.ForeignKey;
-
-@Entity(
-        tableName = "Evaluation",
-        foreignKeys = {
-                @ForeignKey(
-                        entity = Evaluation.class,
-                        parentColumns = "id",
-                        childColumns = "parent_id",
-                        onDelete = ForeignKey.CASCADE
-                ),
-                @ForeignKey(
-                        entity = Class.class,
-                        parentColumns = "id",
-                        childColumns = "class_id",
-                        onDelete = ForeignKey.CASCADE
-                )
-        }
-)
 public abstract class Evaluation {
     private long id;
     private Long parentId;
@@ -27,13 +7,8 @@ public abstract class Evaluation {
     private int pointsMax;
     private String name;
 
-    public Evaluation(String name, long classId, Long parentId, Integer pointsMax) {
-        if (name == null || name.isEmpty()) {
-            throw new IllegalArgumentException("Le nom ne peut pas être vide");
-        }
-        if (pointsMax == null || pointsMax <= 0) {
-            throw new IllegalArgumentException("Le nombre de points maximum doit être positif");
-        }
+    // Constructeur principal
+    public Evaluation(String name, long classId, Long parentId, int pointsMax) {
         this.name = name;
         this.classId = classId;
         this.parentId = parentId;
@@ -41,22 +16,48 @@ public abstract class Evaluation {
     }
 
     // Getters et Setters
-    public long getId() { return id; }
-    public void setId(long id) { this.id = id; }
+    public long getId() {
+        return id;
+    }
 
-    public Long getParentId() { return parentId; }
-    public void setParentId(Long parentId) { this.parentId = parentId; }
+    public void setId(long id) {
+        this.id = id;
+    }
 
-    public long getClassId() { return classId; }
-    public void setClassId(long classId) { this.classId = classId; }
+    public Long getParentId() {
+        return parentId;
+    }
 
-    public int getPointsMax() { return pointsMax; }
-    public void setPointsMax(int pointsMax) { this.pointsMax = pointsMax; }
+    public void setParentId(Long parentId) {
+        this.parentId = parentId;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public long getClassId() {
+        return classId;
+    }
+
+    public void setClassId(long classId) {
+        this.classId = classId;
+    }
+
+    public int getPointsMax() {
+        return pointsMax;
+    }
+
+    public void setPointsMax(int pointsMax) {
+        this.pointsMax = pointsMax;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 
     // Méthodes abstraites
     public abstract boolean isLeaf();
+
     public abstract double calculateScoreForStudent(long studentId);
 }

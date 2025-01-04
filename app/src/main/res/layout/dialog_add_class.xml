@@ -1,21 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
     android:padding="16dp">
 
+    <!-- Champ d'entrée pour le nom de la classe -->
     <EditText
         android:id="@+id/input_class_name"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:hint="@string/enter_class_name"
-        android:inputType="text" />
+        android:hint="Entrer le nom de la classe"
+        android:inputType="text"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-    <Button
-        android:id="@+id/btn_add_class"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/add_class" />
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

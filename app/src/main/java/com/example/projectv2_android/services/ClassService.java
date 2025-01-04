@@ -13,17 +13,34 @@ public class ClassService {
     }
 
     /**
-     * Récupère toutes les classes (blocs)
+     * Récupère toutes les classes (blocs).
      */
     public List<Class> getAllClasses() {
         return classRepository.getAllClasses();
     }
 
     /**
-     * Ajoute une nouvelle classe
+     * Ajoute une nouvelle classe après vérification.
      */
     public long createClass(String name) {
-        Class newClass = new Class(name);
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Le nom de la classe ne peut pas être vide.");
+        }
+        Class newClass = new Class(name.trim());
         return classRepository.insertClass(newClass);
+    }
+
+    /**
+     * Trouve une classe par son ID.
+     */
+    public Class findClassById(long classId) {
+        return classRepository.findById(classId);
+    }
+
+    /**
+     * Supprime une classe.
+     */
+    public boolean deleteClass(long classId) {
+        return classRepository.deleteClass(classId) > 0;
     }
 }

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+    <TextView
+        android:id="@+id/text_evaluation_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:text="Evaluation Name" />
+
+    <TextView
+        android:id="@+id/text_points_max"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Points Max"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/text_evaluation_type"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Type (Parent/Leaf)"
+        android:textSize="14sp"
+        android:textColor="@android:color/darker_gray" />
+</LinearLayout>

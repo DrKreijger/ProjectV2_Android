@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -18,8 +19,10 @@ import com.example.projectv2_android.dialogs.AddClassDialogFragment;
 import com.example.projectv2_android.models.Class;
 import com.example.projectv2_android.repositories.ClassRepository;
 import com.example.projectv2_android.db.AppDatabase;
+import com.example.projectv2_android.services.ClassService;
 
 import java.util.List;
+import java.util.concurrent.Executors;
 
 public class ClassesListFragment extends Fragment implements ClassesListAdapter.OnClassInteractionListener {
 
@@ -41,8 +44,10 @@ public class ClassesListFragment extends Fragment implements ClassesListAdapter.
         recyclerView = view.findViewById(R.id.recycler_classes);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
 
+        // Initialisation correcte de la chaîne de dépendances
         ClassRepository classRepository = new ClassRepository(AppDatabase.getInstance(requireContext()).classDao());
-        classController = new ClassController(classRepository);
+        ClassService classService = new ClassService(classRepository); // Ajout de ClassService
+        classController = new ClassController(classService); // Injection de ClassService dans ClassController
 
         adapter = new ClassesListAdapter(this);
         recyclerView.setAdapter(adapter);
@@ -58,9 +63,24 @@ public class ClassesListFragment extends Fragment implements ClassesListAdapter.
         return view;
     }
 
+
     private void loadClasses() {
-        List<Class> classes = classController.getAllClasses();
-        adapter.setData(classes);
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                // Appel au controller pour récupérer les classes
+                List<Class> classes = classController.getAllClasses();
+
+                // Mise à jour de l'UI avec les données récupérées
+                requireActivity().runOnUiThread(() -> {
+                    adapter.setData(classes);
+                });
+            } catch (Exception e) {
+                // Gère les erreurs et affiche un message à l'utilisateur
+                requireActivity().runOnUiThread(() -> {
+                    Toast.makeText(requireContext(), "Erreur lors du chargement des classes", Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
     }
 
     @Override

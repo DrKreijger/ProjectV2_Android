@@ -19,4 +19,10 @@
     <string name="force_average">Forcer la note</string>
     <string name="view_evaluations">Voir évaluations</string>
     <string name="view_students">Voir étudiants</string>
+    <string name="error_fill_all_fields">Veuillez remplir tous les champs</string>
+    <string name="evaluation_list_title">Titre de la liste des évaluations</string>
+    <string name="student_added_successfully">Étudiant ajouté avec succès</string>
+    <string name="error_adding_student">Erreur lors de l\'ajout de l\'étudiant</string>
+    <string name="leaf_evaluation">Feuille d\'évaluation</string>
+    <string name="parent_evaluation">Évaluation parent</string>
 </resources>

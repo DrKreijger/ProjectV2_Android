@@ -2,6 +2,7 @@ package com.example.projectv2_android.repositories;
 
 import com.example.projectv2_android.dao.EvaluationDao;
 import com.example.projectv2_android.models.Evaluation;
+import com.example.projectv2_android.models.EvaluationEntity;
 import com.example.projectv2_android.models.LeafEvaluation;
 import com.example.projectv2_android.models.ParentEvaluation;
 
@@ -18,91 +19,102 @@ public class EvaluationRepository {
     }
 
     public long insertEvaluation(Evaluation evaluation) {
-        return evaluationDao.insertEvaluation(evaluation);
+        EvaluationEntity entity = mapToEntity(evaluation);
+        return evaluationDao.insertEvaluation(entity);
     }
 
     public Evaluation findById(long id) {
-        Evaluation eval = evaluationDao.findById(id);
-        return mapEvaluation(eval);
+        EvaluationEntity entity = evaluationDao.findById(id);
+        return mapToEvaluation(entity);
     }
 
     public List<Evaluation> getAllEvaluationsForClass(long classId) {
-        List<Evaluation> evaluations = evaluationDao.getEvaluationsForClass(classId);
-        return mapEvaluations(evaluations);
+        List<EvaluationEntity> entities = evaluationDao.getEvaluationsForClass(classId);
+        return mapToEvaluations(entities);
     }
 
     public List<Evaluation> getChildEvaluations(long parentId) {
-        List<Evaluation> evaluations = evaluationDao.getChildEvaluations(parentId);
-        return mapEvaluations(evaluations);
+        List<EvaluationEntity> entities = evaluationDao.getChildEvaluations(parentId);
+        return mapToEvaluations(entities);
     }
 
     public List<ParentEvaluation> getParentEvaluations() {
-        List<Evaluation> evaluations = evaluationDao.getParentEvaluations();
-        return mapToParentEvaluations(evaluations);
+        List<EvaluationEntity> entities = evaluationDao.getParentEvaluations();
+        return mapToParentEvaluations(entities);
     }
 
     public List<LeafEvaluation> getLeafEvaluations() {
-        List<Evaluation> evaluations = evaluationDao.getLeafEvaluations();
-        return mapToLeafEvaluations(evaluations);
+        List<EvaluationEntity> entities = evaluationDao.getLeafEvaluations();
+        return mapToLeafEvaluations(entities);
     }
 
-    private Evaluation mapEvaluation(Evaluation eval) {
-        if (eval == null) return null;
-        if (isParentEvaluation(eval)) {
+    private Evaluation mapToEvaluation(EvaluationEntity entity) {
+        if (entity == null) return null;
+        if (isParentEvaluation(entity)) {
             return new ParentEvaluation(
-                    eval.getName(),
-                    eval.getClassId(),
-                    eval.getParentId(),
-                    eval.getPointsMax()
+                    entity.getName(),
+                    entity.getClassId(),
+                    entity.getParentId(),
+                    entity.getPointsMax()
             );
         } else {
             return new LeafEvaluation(
-                    eval.getName(),
-                    eval.getClassId(),
-                    eval.getParentId(),
-                    eval.getPointsMax(),
+                    entity.getName(),
+                    entity.getClassId(),
+                    entity.getParentId(),
+                    entity.getPointsMax(),
                     noteRepository
             );
         }
     }
 
-    private List<Evaluation> mapEvaluations(List<Evaluation> evaluations) {
-        List<Evaluation> result = new ArrayList<>();
-        for (Evaluation eval : evaluations) {
-            result.add(mapEvaluation(eval));
+    private List<Evaluation> mapToEvaluations(List<EvaluationEntity> entities) {
+        List<Evaluation> evaluations = new ArrayList<>();
+        for (EvaluationEntity entity : entities) {
+            evaluations.add(mapToEvaluation(entity));
         }
-        return result;
+        return evaluations;
     }
 
-    private List<ParentEvaluation> mapToParentEvaluations(List<Evaluation> evaluations) {
-        List<ParentEvaluation> result = new ArrayList<>();
-        for (Evaluation eval : evaluations) {
-            result.add(new ParentEvaluation(
-                    eval.getName(),
-                    eval.getClassId(),
-                    eval.getParentId(),
-                    eval.getPointsMax()
+    private List<ParentEvaluation> mapToParentEvaluations(List<EvaluationEntity> entities) {
+        List<ParentEvaluation> parentEvaluations = new ArrayList<>();
+        for (EvaluationEntity entity : entities) {
+            parentEvaluations.add(new ParentEvaluation(
+                    entity.getName(),
+                    entity.getClassId(),
+                    entity.getParentId(),
+                    entity.getPointsMax()
             ));
         }
-        return result;
+        return parentEvaluations;
     }
 
-    private List<LeafEvaluation> mapToLeafEvaluations(List<Evaluation> evaluations) {
-        List<LeafEvaluation> result = new ArrayList<>();
-        for (Evaluation eval : evaluations) {
-            result.add(new LeafEvaluation(
-                    eval.getName(),
-                    eval.getClassId(),
-                    eval.getParentId(),
-                    eval.getPointsMax(),
+    private List<LeafEvaluation> mapToLeafEvaluations(List<EvaluationEntity> entities) {
+        List<LeafEvaluation> leafEvaluations = new ArrayList<>();
+        for (EvaluationEntity entity : entities) {
+            leafEvaluations.add(new LeafEvaluation(
+                    entity.getName(),
+                    entity.getClassId(),
+                    entity.getParentId(),
+                    entity.getPointsMax(),
                     noteRepository
             ));
         }
-        return result;
+        return leafEvaluations;
     }
 
-    private boolean isParentEvaluation(Evaluation eval) {
-        List<Evaluation> children = evaluationDao.getChildEvaluations(eval.getId());
+    private EvaluationEntity mapToEntity(Evaluation evaluation) {
+        if (evaluation == null) return null;
+        return new EvaluationEntity(
+                evaluation.getName(),
+                evaluation.getClassId(),
+                evaluation.getParentId(),
+                evaluation.getPointsMax()
+        );
+    }
+
+    private boolean isParentEvaluation(EvaluationEntity entity) {
+        List<EvaluationEntity> children = evaluationDao.getChildEvaluations(entity.getId());
         return !children.isEmpty();
     }
 }
