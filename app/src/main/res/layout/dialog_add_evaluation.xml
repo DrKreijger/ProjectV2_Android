@@ -1,34 +1,46 @@
-<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
 
     <EditText
         android:id="@+id/input_evaluation_name"
+        android:hint="Nom de l'évaluation"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="@string/enter_evaluation_name"
-        android:inputType="text" />
+        android:layout_height="wrap_content"/>
 
     <EditText
         android:id="@+id/input_evaluation_points_max"
+        android:hint="Points maximum"
+        android:inputType="number"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="@string/enter_points_max"
-        android:inputType="number" />
+        android:layout_height="wrap_content"/>
 
     <CheckBox
         android:id="@+id/checkbox_has_sub_evaluations"
+        android:text="Ajouter des sous-évaluations"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <LinearLayout
+        android:id="@+id/sub_evaluations_container"
+        android:orientation="vertical"
+        android:visibility="gone"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/has_sub_evaluations" />
+        android:layout_height="wrap_content"/>
+
+    <Button
+        android:id="@+id/btn_add_sub_evaluation"
+        android:text="Ajouter une sous-évaluation"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
 
     <Button
         android:id="@+id/btn_add_evaluation"
+        android:text="Créer l'évaluation"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/add_evaluation" />
+        android:layout_height="wrap_content"/>
 </LinearLayout>

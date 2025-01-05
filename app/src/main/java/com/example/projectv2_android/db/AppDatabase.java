@@ -17,7 +17,7 @@ import com.example.projectv2_android.models.Note;
 import com.example.projectv2_android.models.Student;
 import com.example.projectv2_android.models.Class;
 
-@Database(entities = {EvaluationEntity.class, Note.class, Student.class, Class.class}, version = 3) // Suppression de Course
+@Database(entities = {EvaluationEntity.class, Note.class, Student.class, Class.class}, version = 5) // Suppression de Course
 @TypeConverters({Converters.class})
 public abstract class AppDatabase extends RoomDatabase {
 

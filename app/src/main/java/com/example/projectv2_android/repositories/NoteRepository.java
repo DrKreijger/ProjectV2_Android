@@ -1,5 +1,7 @@
 package com.example.projectv2_android.repositories;
 
+import android.util.Log;
+
 import com.example.projectv2_android.dao.NoteDao;
 import com.example.projectv2_android.models.Note;
 
@@ -120,11 +122,16 @@ public class NoteRepository {
      * Récupère une note pour un étudiant et une évaluation spécifique.
      */
     public Note getNoteForStudentEvaluation(long studentId, long evaluationId) {
-        if (studentId <= 0 || evaluationId <= 0) {
-            throw new IllegalArgumentException("L'ID de l'étudiant ou de l'évaluation est invalide");
+        Log.d("NoteRepository", "getNoteForStudentEvaluation -> studentId: " + studentId + ", evaluationId: " + evaluationId);
+        if (studentId <= 0) {
+            throw new IllegalArgumentException("L'ID de l'étudiant est invalide");
+        }
+        if (evaluationId <= 0) {
+            throw new IllegalArgumentException("L'ID de l'évaluation est invalide");
         }
         return noteDao.getNoteForStudentEvaluation(studentId, evaluationId);
     }
+
 
     /**
      * Récupère toutes les notes pour les sous-évaluations d'une évaluation parent.

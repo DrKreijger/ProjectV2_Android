@@ -1,6 +1,8 @@
 package com.example.projectv2_android.controllers;
 
 import com.example.projectv2_android.models.Evaluation;
+import com.example.projectv2_android.models.LeafEvaluation;
+import com.example.projectv2_android.models.ParentEvaluation;
 import com.example.projectv2_android.services.EvaluationService;
 
 import java.util.List;
@@ -24,7 +26,13 @@ public class EvaluationController {
         return evaluationService.calculateWeightedAverage(evaluationId);
     }
 
-    public long createEvaluation(String name, long classId, Integer pointsMax, boolean hasSubEvaluations, Long parentId) {
-        return evaluationService.createEvaluation(name, classId, pointsMax, hasSubEvaluations, parentId);
+    public long createParentEvaluation(String name, long classId, int pointsMax, List<Evaluation> children, Long parentId) {
+        return evaluationService.createParentEvaluation(name, classId, pointsMax, children, parentId);
     }
+
+    public long createLeafEvaluation(String name, long classId, Long parentId, int pointsMax) {
+        return evaluationService.createLeafEvaluation(name, classId, parentId, pointsMax);
+    }
+
+
 }

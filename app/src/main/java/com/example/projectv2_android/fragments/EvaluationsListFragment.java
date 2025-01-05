@@ -50,14 +50,18 @@ public class EvaluationsListFragment extends Fragment {
             classId = getArguments().getLong(ARG_CLASS_ID);
         }
 
-        // Initialisation du service et du contrôleur
+        // Initialisation des repositories
+        NoteRepository noteRepository = new NoteRepository(AppDatabase.getInstance(requireContext()).noteDao());
         EvaluationRepository evaluationRepository = new EvaluationRepository(
                 AppDatabase.getInstance(requireContext()).evaluationDao(),
-                new NoteRepository(AppDatabase.getInstance(requireContext()).noteDao())
+                noteRepository
         );
-        EvaluationService evaluationService = new EvaluationService(evaluationRepository);
+
+        // Initialisation du service et du contrôleur avec les deux repositories
+        EvaluationService evaluationService = new EvaluationService(evaluationRepository, noteRepository);
         evaluationController = new EvaluationController(evaluationService);
     }
+
 
     @Nullable
     @Override

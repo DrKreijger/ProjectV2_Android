@@ -50,12 +50,16 @@ public class EvaluationRepository {
 
     private Evaluation mapToEvaluation(EvaluationEntity entity) {
         if (entity == null) return null;
+
         if (isParentEvaluation(entity)) {
+            // Charger les enfants depuis la base de données
+            List<Evaluation> children = mapToEvaluations(evaluationDao.getChildEvaluations(entity.getId()));
             return new ParentEvaluation(
                     entity.getName(),
                     entity.getClassId(),
                     entity.getParentId(),
-                    entity.getPointsMax()
+                    entity.getPointsMax(),
+                    children // Fournir la liste des enfants
             );
         } else {
             return new LeafEvaluation(
@@ -68,6 +72,7 @@ public class EvaluationRepository {
         }
     }
 
+
     private List<Evaluation> mapToEvaluations(List<EvaluationEntity> entities) {
         List<Evaluation> evaluations = new ArrayList<>();
         for (EvaluationEntity entity : entities) {
@@ -79,15 +84,18 @@ public class EvaluationRepository {
     private List<ParentEvaluation> mapToParentEvaluations(List<EvaluationEntity> entities) {
         List<ParentEvaluation> parentEvaluations = new ArrayList<>();
         for (EvaluationEntity entity : entities) {
+            List<Evaluation> children = mapToEvaluations(evaluationDao.getChildEvaluations(entity.getId()));
             parentEvaluations.add(new ParentEvaluation(
                     entity.getName(),
                     entity.getClassId(),
                     entity.getParentId(),
-                    entity.getPointsMax()
+                    entity.getPointsMax(),
+                    children // Fournir les enfants obligatoirement
             ));
         }
         return parentEvaluations;
     }
+
 
     private List<LeafEvaluation> mapToLeafEvaluations(List<EvaluationEntity> entities) {
         List<LeafEvaluation> leafEvaluations = new ArrayList<>();

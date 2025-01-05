@@ -82,8 +82,11 @@ public class StudentDetailFragment extends Fragment {
         recyclerView = view.findViewById(R.id.recycler_evaluations);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new StudentEvaluationsAdapter(this::onForceAverageClicked);
+        adapter = new StudentEvaluationsAdapter(this::onEvaluationClicked, this::onForceAverageClicked);
         recyclerView.setAdapter(adapter);
+
+        // Ajout du clic pour modifier ou ajouter une note
+        adapter.setOnNoteClickListener(this::onEvaluationClicked);
 
         return view;
     }
@@ -129,12 +132,14 @@ public class StudentDetailFragment extends Fragment {
     }
 
     private void onEvaluationClicked(long evaluationId) {
+        // Ouvre le dialog pour éditer ou ajouter une note
         EditNoteDialogFragment dialog = EditNoteDialogFragment.newInstance(studentId, evaluationId);
         dialog.setOnNoteAddedListener(this::loadStudentEvaluations);
-        dialog.show(getParentFragmentManager(), "AddNoteDialog");
+        dialog.show(getParentFragmentManager(), "EditNoteDialog");
     }
 
     private void onForceAverageClicked(long evaluationId) {
+        // Ouvre le dialog pour forcer une moyenne
         ForceNoteDialogFragment dialog = ForceNoteDialogFragment.newInstance(evaluationId);
         dialog.setOnForceNoteListener(forcedNote -> {
             Executors.newSingleThreadExecutor().execute(() -> {

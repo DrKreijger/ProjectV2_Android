@@ -1,6 +1,7 @@
 package com.example.projectv2_android.dialogs;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +25,8 @@ public class EditNoteDialogFragment extends DialogFragment {
     public interface OnNoteAddedListener {
         void onNoteAdded();
     }
+
+    private static final String TAG = "EditNoteDialogFragment";
 
     private long studentId;
     private long evaluationId;
@@ -51,9 +54,17 @@ public class EditNoteDialogFragment extends DialogFragment {
         EditText inputNote = view.findViewById(R.id.input_student_note);
         Button btnAddNote = view.findViewById(R.id.btn_save_note);
 
+        // Récupération des arguments
         if (getArguments() != null) {
-            studentId = getArguments().getLong("studentId");
-            evaluationId = getArguments().getLong("evaluationId");
+            studentId = getArguments().getLong("studentId", -1);
+            evaluationId = getArguments().getLong("evaluationId", -1);
+        }
+
+        // Validation des IDs
+        if (studentId <= 0 || evaluationId <= 0) {
+            Log.e(TAG, "Invalid studentId or evaluationId: studentId=" + studentId + ", evaluationId=" + evaluationId);
+            Toast.makeText(requireContext(), "IDs invalides. Impossible de sauvegarder la note.", Toast.LENGTH_SHORT).show();
+            dismiss();
         }
 
         // Initialisation du repository
@@ -70,40 +81,55 @@ public class EditNoteDialogFragment extends DialogFragment {
             try {
                 double noteValue = Double.parseDouble(noteValueStr);
 
-                // Validation de la plage de la note (par exemple, entre 0 et 20)
-                if (noteValue < 0 || noteValue > 20) { // Ajustez la limite supérieure si nécessaire
+                // Validation de la plage de la note
+                if (noteValue < 0 || noteValue > 20) { // Ajuster la limite supérieure si nécessaire
                     Toast.makeText(requireContext(), "La note doit être comprise entre 0 et 20", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
-                // Créer une note et exécuter l'insertion ou la mise à jour dans un thread séparé
-                Executors.newSingleThreadExecutor().execute(() -> {
-                    try {
-                        Note note = new Note();
-                        note.setStudentId(studentId);
-                        note.setEvalId(evaluationId);
-                        note.setNoteValue(noteValue);
-
-                        noteRepository.insertOrUpdate(note);
-                        requireActivity().runOnUiThread(() -> {
-                            Toast.makeText(requireContext(), "Note ajoutée avec succès", Toast.LENGTH_SHORT).show();
-                            if (listener != null) {
-                                listener.onNoteAdded();
-                            }
-                            dismiss();
-                        });
-                    } catch (Exception e) {
-                        requireActivity().runOnUiThread(() -> {
-                            Toast.makeText(requireContext(), "Erreur lors de l'ajout de la note", Toast.LENGTH_SHORT).show();
-                        });
-                    }
-                });
+                // Exécuter l'insertion ou la mise à jour dans un thread séparé
+                saveNoteInDatabase(noteValue);
 
             } catch (NumberFormatException e) {
+                Log.e(TAG, "Invalid note value: " + noteValueStr, e);
                 Toast.makeText(requireContext(), "Veuillez entrer une valeur numérique valide", Toast.LENGTH_SHORT).show();
             }
         });
 
         return view;
+    }
+
+    private void saveNoteInDatabase(double noteValue) {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                Log.d(TAG, "Tentative d'insertion ou de mise à jour de la note: studentId=" + studentId + ", evaluationId=" + evaluationId + ", noteValue=" + noteValue);
+
+                Note note = noteRepository.getNoteForStudentEvaluation(studentId, evaluationId);
+                if (note == null) {
+                    Log.d(TAG, "Aucune note existante trouvée. Création d'une nouvelle note.");
+                    note = new Note();
+                    note.setStudentId(studentId);
+                    note.setEvalId(evaluationId);
+                }
+
+                note.setNoteValue(noteValue);
+                long noteId = noteRepository.insertOrUpdate(note);
+                Log.d(TAG, "Note enregistrée avec succès. Note ID: " + noteId);
+
+                requireActivity().runOnUiThread(() -> {
+                    Toast.makeText(requireContext(), "Note enregistrée avec succès", Toast.LENGTH_SHORT).show();
+                    if (listener != null) {
+                        listener.onNoteAdded();
+                    }
+                    dismiss();
+                });
+
+            } catch (Exception e) {
+                Log.e(TAG, "Erreur lors de l'enregistrement de la note", e);
+                requireActivity().runOnUiThread(() -> {
+                    Toast.makeText(requireContext(), "Erreur lors de l'enregistrement de la note", Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
     }
 }

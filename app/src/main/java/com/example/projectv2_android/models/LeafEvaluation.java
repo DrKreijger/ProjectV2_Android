@@ -8,13 +8,8 @@ public class LeafEvaluation extends Evaluation {
     private final NoteRepository noteRepository;
 
     public LeafEvaluation(String name, long classId, Long parentId, Integer pointsMax, NoteRepository noteRepository) {
-        super(name, classId, parentId, pointsMax);
+        super(name, classId, parentId, pointsMax, true); // isLeaf = true
         this.noteRepository = noteRepository;
-    }
-
-    @Override
-    public boolean isLeaf() {
-        return true;
     }
 
     public NoteRepository getNoteRepository() {
@@ -23,20 +18,10 @@ public class LeafEvaluation extends Evaluation {
 
     @Override
     public double calculateScoreForStudent(long studentId) {
-        // Obtenez la note pour cet étudiant pour cette évaluation
         Note note = noteRepository.getNoteForStudent(this.getId(), studentId);
-        if (note != null) {
-            return note.getNoteValue();
-        } else {
-            // Retourne 0 si aucune note n'existe
-            return 0.0;
-        }
+        return (note != null && note.getNoteValue() != null) ? note.getNoteValue() : 0.0;
     }
 
-    /**
-     * Calcul de la moyenne générale des notes pour cette évaluation.
-     * @return La moyenne générale des notes pour l'évaluation.
-     */
     public double calculateOverallScore() {
         List<Note> notes = noteRepository.getNotesForEvaluation(getId());
         if (notes == null || notes.isEmpty()) {
@@ -45,7 +30,7 @@ public class LeafEvaluation extends Evaluation {
 
         double totalScore = 0.0;
         for (Note note : notes) {
-            totalScore += note.getNoteValue();
+            totalScore += note.getNoteValue() != null ? note.getNoteValue() : 0.0;
         }
 
         return totalScore / notes.size();
