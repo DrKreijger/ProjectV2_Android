@@ -14,6 +14,7 @@ import com.example.projectv2_android.services.StudentService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class StudentsListAdapter extends RecyclerView.Adapter<StudentsListAdapter.StudentViewHolder> {
 
@@ -28,7 +29,6 @@ public class StudentsListAdapter extends RecyclerView.Adapter<StudentsListAdapte
     public StudentsListAdapter(OnStudentClickListener listener, StudentService studentService) {
         this.listener = listener;
         this.studentService = studentService;
-
     }
 
     public void setData(List<Student> students) {
@@ -78,9 +78,19 @@ public class StudentsListAdapter extends RecyclerView.Adapter<StudentsListAdapte
         public void bind(Student student) {
             textStudentName.setText(student.getFirstName() + " " + student.getName());
 
-            // Calculer la moyenne via le service
-            double average = studentService.calculateStudentAverage(student.getId());
-            textStudentAverage.setText(String.format("Moyenne: %.2f", average));
+            studentService.calculateStudentAverage(student.getId(), new StudentService.Callback<Double>() {
+                @Override
+                public void onSuccess(Double average) {
+                    // Mise à jour de l'UI sur le thread principal
+                    textStudentAverage.post(() -> textStudentAverage.setText(String.format(Locale.getDefault(), "%.2f", average)));
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    // Affiche "Erreur" en cas de problème
+                    textStudentAverage.post(() -> textStudentAverage.setText("Erreur"));
+                }
+            });
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.example.projectv2_android.fragments;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,9 +25,11 @@ import com.example.projectv2_android.repositories.StudentRepository;
 import com.example.projectv2_android.services.StudentService;
 
 import java.util.List;
+import java.util.concurrent.Executors;
 
 public class StudentsListFragment extends Fragment {
 
+    private static final String TAG = "StudentsListFragment";
     private static final String ARG_CLASS_ID = "class_id";
 
     private long classId;
@@ -54,22 +57,25 @@ public class StudentsListFragment extends Fragment {
             classId = getArguments().getLong(ARG_CLASS_ID);
         }
 
-        // Initialisation des repositories
-        StudentRepository studentRepository = new StudentRepository(AppDatabase.getInstance(requireContext()).studentDao());
-        EvaluationRepository evaluationRepository = new EvaluationRepository(
-                AppDatabase.getInstance(requireContext()).evaluationDao(),
-                new NoteRepository(AppDatabase.getInstance(requireContext()).noteDao())
-        );
-        NoteRepository noteRepository = new NoteRepository(AppDatabase.getInstance(requireContext()).noteDao());
+        try {
+            // Initialisation des repositories
+            StudentRepository studentRepository = new StudentRepository(AppDatabase.getInstance(requireContext()).studentDao());
+            EvaluationRepository evaluationRepository = new EvaluationRepository(
+                    AppDatabase.getInstance(requireContext()).evaluationDao(),
+                    new NoteRepository(AppDatabase.getInstance(requireContext()).noteDao())
+            );
+            NoteRepository noteRepository = new NoteRepository(AppDatabase.getInstance(requireContext()).noteDao());
 
-        // Initialisation du service avec tous les repositories nécessaires
-        StudentService studentService = new StudentService(studentRepository, evaluationRepository, noteRepository);
+            // Initialisation du service avec tous les repositories nécessaires
+            StudentService studentService = new StudentService(studentRepository, evaluationRepository, noteRepository);
 
-        // Initialisation du controller
-        studentController = new StudentController(studentService);
+            // Initialisation du controller
+            studentController = new StudentController(studentService);
+        } catch (Exception e) {
+            Log.e(TAG, "Error initializing dependencies: " + e.getMessage(), e);
+            Toast.makeText(requireContext(), "Erreur d'initialisation", Toast.LENGTH_SHORT).show();
+        }
     }
-
-
 
     @Nullable
     @Override
@@ -79,14 +85,14 @@ public class StudentsListFragment extends Fragment {
         recyclerView = view.findViewById(R.id.recycler_view_students);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
 
-        // Initialisation de l'adaptateur avec un listener pour les clics sur les étudiants
+        // Initialisation de l'adaptateur
         adapter = new StudentsListAdapter(student -> {
             // Passer l'objet Student entier à la méthode onStudentClicked
             onStudentClicked(student);
         }, studentController.getStudentService());
         recyclerView.setAdapter(adapter);
 
-        // Initialisation du FloatingActionButton pour ajouter un étudiant
+        // FloatingActionButton pour ajouter un étudiant
         view.findViewById(R.id.fab_add_student).setOnClickListener(v -> {
             AddStudentDialogFragment dialog = AddStudentDialogFragment.newInstance(classId);
             dialog.setOnStudentAddedListener(this::loadStudents);
@@ -98,19 +104,28 @@ public class StudentsListFragment extends Fragment {
         return view;
     }
 
-
-
     private void loadStudents() {
-        try {
-            List<Student> students = studentController.getStudentsForClass(classId);
-            adapter.setData(students);
-        } catch (Exception e) {
-            Toast.makeText(requireContext(), "Erreur lors du chargement des étudiants", Toast.LENGTH_SHORT).show();
-        }
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                // Chargement des étudiants depuis le contrôleur
+                List<Student> students = studentController.getStudentsForClass(classId);
+                requireActivity().runOnUiThread(() -> {
+                    if (students.isEmpty()) {
+                        Toast.makeText(requireContext(), "Aucun étudiant trouvé", Toast.LENGTH_SHORT).show();
+                    }
+                    adapter.setData(students);
+                });
+            } catch (Exception e) {
+                Log.e(TAG, "Error loading students: " + e.getMessage(), e);
+                requireActivity().runOnUiThread(() -> {
+                    Toast.makeText(requireContext(), "Erreur lors du chargement des étudiants", Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
     }
 
     private void onStudentClicked(long studentId) {
-        // Implémentez la navigation vers le détail de l'étudiant
+        // Implémenter la navigation vers le détail de l'étudiant
         if (getActivity() instanceof StudentsListNavigator) {
             ((StudentsListNavigator) getActivity()).openStudentDetail(studentId, classId);
         }

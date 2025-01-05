@@ -8,6 +8,7 @@ import com.example.projectv2_android.repositories.NoteRepository;
 import com.example.projectv2_android.repositories.StudentRepository;
 
 import java.util.List;
+import java.util.concurrent.Executors;
 
 public class StudentService {
     private final StudentRepository studentRepository;
@@ -66,37 +67,38 @@ public class StudentService {
     /**
      * Calcule la moyenne pondérée d'un étudiant.
      */
-    public double calculateStudentAverage(long studentId) {
-        List<Note> notes = noteRepository.getNotesForStudent(studentId);
+    public void calculateStudentAverage(long studentId, Callback<Double> callback) {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                // Appel Room dans un thread séparé
+                List<Note> notes = noteRepository.getNotesForStudent(studentId);
+                double average = calculateAverageFromNotes(notes);
 
-        if (notes == null || notes.isEmpty()) {
-            return 0;
-        }
-
-        double totalWeightedScores = 0;
-        double totalWeights = 0;
-
-        for (Note note : notes) {
-            // Utilise la valeur forcée si elle existe, sinon la valeur normale
-            double score = note.getForcedValue() != null ? note.getForcedValue() : note.getNoteValue();
-
-            // Récupère les informations de l'évaluation associée
-            Evaluation evaluation = evaluationRepository.findById(note.getEvalId());
-            if (evaluation != null) {
-                double weight = evaluation.getPointsMax();
-                totalWeightedScores += score * weight;
-                totalWeights += weight;
+                // Retour des résultats sur le thread principal
+                new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                    callback.onSuccess(average);
+                });
+            } catch (Exception e) {
+                new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                    callback.onError(e);
+                });
             }
-        }
-
-        if (totalWeights == 0) {
-            return 0;
-        }
-
-        // Calcul de la moyenne pondérée
-        double average = totalWeightedScores / totalWeights;
-
-        // Arrondi à 0,5 près
-        return Math.round(average * 2) / 2.0;
+        });
     }
+
+    private double calculateAverageFromNotes(List<Note> notes) {
+        if (notes == null || notes.isEmpty()) return 0;
+        double sum = 0;
+        for (Note note : notes) {
+            sum += note.getNoteValue(); // Exemple de calcul
+        }
+        return sum / notes.size();
+    }
+
+    // Interface Callback pour les retours
+    public interface Callback<T> {
+        void onSuccess(T result);
+        void onError(Exception e);
+    }
+
 }

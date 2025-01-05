@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,13 +19,16 @@ import androidx.fragment.app.DialogFragment;
 import com.example.projectv2_android.R;
 import com.example.projectv2_android.controllers.StudentController;
 import com.example.projectv2_android.db.AppDatabase;
-import com.example.projectv2_android.models.Student;
 import com.example.projectv2_android.repositories.EvaluationRepository;
 import com.example.projectv2_android.repositories.NoteRepository;
 import com.example.projectv2_android.repositories.StudentRepository;
 import com.example.projectv2_android.services.StudentService;
 
+import java.util.concurrent.Executors;
+
 public class AddStudentDialogFragment extends DialogFragment {
+
+    private static final String TAG = "AddStudentDialog";
 
     public interface OnStudentAddedListener {
         void onStudentAdded();
@@ -61,20 +65,28 @@ public class AddStudentDialogFragment extends DialogFragment {
         }
 
         // Initialisation correcte des repositories et services
-        StudentRepository studentRepository = new StudentRepository(AppDatabase.getInstance(requireContext()).studentDao());
-        NoteRepository noteRepository = new NoteRepository(AppDatabase.getInstance(requireContext()).noteDao());
-        EvaluationRepository evaluationRepository = new EvaluationRepository(
-                AppDatabase.getInstance(requireContext()).evaluationDao(),
-                noteRepository
-        );
+        try {
+            StudentRepository studentRepository = new StudentRepository(AppDatabase.getInstance(requireContext()).studentDao());
+            NoteRepository noteRepository = new NoteRepository(AppDatabase.getInstance(requireContext()).noteDao());
+            EvaluationRepository evaluationRepository = new EvaluationRepository(
+                    AppDatabase.getInstance(requireContext()).evaluationDao(),
+                    noteRepository
+            );
 
-        StudentService studentService = new StudentService(
-                studentRepository,
-                evaluationRepository,
-                noteRepository
-        );
+            StudentService studentService = new StudentService(
+                    studentRepository,
+                    evaluationRepository,
+                    noteRepository
+            );
 
-        studentController = new StudentController(studentService);
+            studentController = new StudentController(studentService);
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error initializing dependencies: " + e.getMessage(), e);
+            Toast.makeText(requireContext(), R.string.error_initializing_dependencies, Toast.LENGTH_SHORT).show();
+            dismiss();
+            return;
+        }
 
         EditText inputFirstName = view.findViewById(R.id.input_student_first_name);
         EditText inputLastName = view.findViewById(R.id.input_student_last_name);
@@ -91,22 +103,30 @@ public class AddStudentDialogFragment extends DialogFragment {
                 return;
             }
 
-            try {
-                long studentId = studentController.createStudent(firstName, lastName, matricule, classId);
-                Toast.makeText(requireContext(), R.string.student_added_successfully, Toast.LENGTH_SHORT).show();
-                if (listener != null) {
-                    listener.onStudentAdded();
+            Executors.newSingleThreadExecutor().execute(() -> {
+                try {
+                    long studentId = studentController.createStudent(firstName, lastName, matricule, classId);
+                    requireActivity().runOnUiThread(() -> {
+                        if (studentId > 0) {
+                            Toast.makeText(requireContext(), R.string.student_added_successfully, Toast.LENGTH_SHORT).show();
+                            if (listener != null) {
+                                listener.onStudentAdded();
+                            }
+                            dismiss();
+                        } else {
+                            Toast.makeText(requireContext(), R.string.error_adding_student, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } catch (IllegalArgumentException e) {
+                    Log.e(TAG, "Validation error: " + e.getMessage());
+                    requireActivity().runOnUiThread(() -> Toast.makeText(requireContext(), e.getMessage(), Toast.LENGTH_SHORT).show());
+                } catch (Exception e) {
+                    Log.e(TAG, "Error adding student: " + e.getMessage(), e);
+                    requireActivity().runOnUiThread(() -> Toast.makeText(requireContext(), R.string.error_adding_student, Toast.LENGTH_SHORT).show());
                 }
-                dismiss();
-            } catch (IllegalArgumentException e) {
-                Toast.makeText(requireContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
-            } catch (Exception e) {
-                Toast.makeText(requireContext(), R.string.error_adding_student, Toast.LENGTH_SHORT).show();
-            }
+            });
         });
     }
-
-
 
     @Override
     public void onDismiss(@NonNull DialogInterface dialog) {
