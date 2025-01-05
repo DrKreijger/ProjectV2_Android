@@ -121,6 +121,7 @@ public class StudentDetailFragment extends Fragment {
                 List<Evaluation> evaluations = evaluationRepository.getAllEvaluationsForClass(classId);
                 List<Note> notes = noteController.getNotesForStudent(studentId);
 
+
                 // Ajout de logs pour vérifier les données récupérées
                 Log.d("StudentDetailFragment", "Nombre d'évaluations récupérées : " + evaluations.size());
                 for (Evaluation eval : evaluations) {

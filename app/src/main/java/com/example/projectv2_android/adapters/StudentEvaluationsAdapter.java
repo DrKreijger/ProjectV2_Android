@@ -66,7 +66,6 @@ public class StudentEvaluationsAdapter extends RecyclerView.Adapter<StudentEvalu
         notifyDataSetChanged();
     }
 
-
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -80,8 +79,17 @@ public class StudentEvaluationsAdapter extends RecyclerView.Adapter<StudentEvalu
         if (position >= 0 && position < evaluations.size()) {
             Evaluation evaluation = evaluations.get(position);
 
-            // Bind evaluation data
-            holder.bind(evaluation, expandedEvaluations.contains(evaluation.getId()));
+            // Récupérer la note correspondante pour cette évaluation
+            Note correspondingNote = null;
+            for (Note note : notes) {
+                if (note.getEvalId() == evaluation.getId()) {
+                    correspondingNote = note;
+                    break;
+                }
+            }
+
+            // Bind evaluation data avec la note correspondante
+            holder.bind(evaluation, correspondingNote, expandedEvaluations.contains(evaluation.getId()));
 
             // Expand/collapse sub-evaluations
             holder.iconExpand.setOnClickListener(v -> {
@@ -105,7 +113,6 @@ public class StudentEvaluationsAdapter extends RecyclerView.Adapter<StudentEvalu
                 }
             });
 
-
             // Force average button
             holder.buttonForceAverage.setOnClickListener(v -> {
                 if (forceAverageListener != null) {
@@ -114,6 +121,7 @@ public class StudentEvaluationsAdapter extends RecyclerView.Adapter<StudentEvalu
             });
         }
     }
+
 
     @Override
     public int getItemCount() {
@@ -133,13 +141,25 @@ public class StudentEvaluationsAdapter extends RecyclerView.Adapter<StudentEvalu
             iconExpand = itemView.findViewById(R.id.icon_expand); // Reference the ImageView
         }
 
-        public void bind(Evaluation evaluation, boolean isExpanded) {
+        public void bind(Evaluation evaluation, Note note, boolean isExpanded) {
             textEvaluationName.setText(evaluation.getName());
 
-            // Set note or default text
-            textEvaluationNote.setText(evaluation.isLeaf() ? "Non noté" : "Évaluation parente");
+            // Log pour le débogage
+            Log.d("StudentEvaluationsAdapter", "Binding evaluation: " + evaluation.getName() + " | ID: " + evaluation.getId());
+            if (note != null) {
+                Log.d("StudentEvaluationsAdapter", "Note associée: " + note.getNoteValue());
+            } else {
+                Log.d("StudentEvaluationsAdapter", "Aucune note associée trouvée.");
+            }
 
-            // Handle expand/collapse icon
+            // Afficher la note ou un texte par défaut
+            if (note != null && note.getNoteValue() != null) {
+                textEvaluationNote.setText(String.format("%.2f / %d", note.getNoteValue(), evaluation.getPointsMax()));
+            } else {
+                textEvaluationNote.setText(evaluation.isLeaf() ? "Non noté" : "Évaluation parente");
+            }
+
+            // Gérer l'icône d'expand/collapse
             if (evaluation.isLeaf()) {
                 iconExpand.setVisibility(View.GONE);
             } else {
@@ -148,4 +168,5 @@ public class StudentEvaluationsAdapter extends RecyclerView.Adapter<StudentEvalu
             }
         }
     }
+
 }
