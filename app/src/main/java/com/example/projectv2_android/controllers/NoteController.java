@@ -41,6 +41,12 @@ public class NoteController {
         return false;
     }
 
+    public void forceNoteForEvaluation(long studentId, long evaluationId, double forcedNote) {
+        noteRepository.updateForcedNoteForStudentEvaluation(studentId, evaluationId, forcedNote);
+    }
+
+
+
     public boolean deleteNotesForEvaluation(long evalId) {
         return noteRepository.deleteNotesForEvaluation(evalId) > 0;
     }

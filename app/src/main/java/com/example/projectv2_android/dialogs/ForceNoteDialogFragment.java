@@ -1,66 +1,84 @@
 package com.example.projectv2_android.dialogs;
 
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
 
 import com.example.projectv2_android.R;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link ForceNoteDialogFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
-public class ForceNoteDialogFragment extends Fragment {
+public class ForceNoteDialogFragment extends DialogFragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
-
-    public ForceNoteDialogFragment() {
-        // Required empty public constructor
+    public interface OnForceNoteListener {
+        void onForceNoteConfirmed(double forcedNote);
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment ForceNoteDialogFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static ForceNoteDialogFragment newInstance(String param1, String param2) {
+    private static final String ARG_EVALUATION_ID = "evaluation_id";
+
+    private OnForceNoteListener listener;
+    private long evaluationId;
+
+    public static ForceNoteDialogFragment newInstance(long evaluationId) {
         ForceNoteDialogFragment fragment = new ForceNoteDialogFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
+        args.putLong(ARG_EVALUATION_ID, evaluationId);
         fragment.setArguments(args);
         return fragment;
     }
 
+    public void setOnForceNoteListener(OnForceNoteListener listener) {
+        this.listener = listener;
+    }
+
+    @NonNull
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+            evaluationId = getArguments().getLong(ARG_EVALUATION_ID);
         }
+
+        View view = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_force_average, null);
+        EditText inputForceAverage = view.findViewById(R.id.input_force_average);
+        Button btnForceAverage = view.findViewById(R.id.btn_force_average);
+
+        btnForceAverage.setOnClickListener(v -> {
+            String input = inputForceAverage.getText().toString().trim();
+
+            if (TextUtils.isEmpty(input)) {
+                Toast.makeText(requireContext(), R.string.error_fill_all_fields, Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            try {
+                double forcedNote = Double.parseDouble(input);
+                if (listener != null) {
+                    listener.onForceNoteConfirmed(forcedNote);
+                }
+                dismiss();
+            } catch (NumberFormatException e) {
+                Toast.makeText(requireContext(), R.string.error_invalid_number, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        return new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle(R.string.force_note_title)
+                .setView(view)
+                .setNegativeButton(R.string.cancel, null)
+                .create();
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.dialog_force_average, container, false);
+    public void onDismiss(@NonNull DialogInterface dialog) {
+        super.onDismiss(dialog);
+        // Optionnel : vous pouvez effectuer une action lorsqu'on ferme le dialogue sans valider
     }
 }

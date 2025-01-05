@@ -18,8 +18,8 @@ import java.util.List;
 
 public class StudentEvaluationsAdapter extends RecyclerView.Adapter<StudentEvaluationsAdapter.ViewHolder> {
 
-    private List<Evaluation> evaluations = new ArrayList<>();
-    private List<Note> notes = new ArrayList<>();
+    private final List<Evaluation> evaluations = new ArrayList<>();
+    private final List<Note> notes = new ArrayList<>();
     private final OnForceAverageClickListener forceAverageListener;
 
     public interface OnForceAverageClickListener {
@@ -31,8 +31,16 @@ public class StudentEvaluationsAdapter extends RecyclerView.Adapter<StudentEvalu
     }
 
     public void setData(List<Evaluation> evaluations, List<Note> notes) {
-        this.evaluations = evaluations;
-        this.notes = notes;
+        this.evaluations.clear();
+        this.notes.clear();
+
+        if (evaluations != null) {
+            this.evaluations.addAll(evaluations);
+        }
+        if (notes != null) {
+            this.notes.addAll(notes);
+        }
+
         notifyDataSetChanged();
     }
 
@@ -46,14 +54,23 @@ public class StudentEvaluationsAdapter extends RecyclerView.Adapter<StudentEvalu
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Evaluation evaluation = evaluations.get(position);
-        Note note = notes.get(position);
+        if (position >= 0 && position < evaluations.size()) {
+            Evaluation evaluation = evaluations.get(position);
 
-        holder.textEvaluationName.setText(evaluation.getName());
-        holder.textEvaluationNote.setText(String.format("%.1f / %d", note.getNoteValue(), evaluation.getPointsMax()));
+            // Vérifie si une note existe pour l'évaluation actuelle
+            Note note = position < notes.size() ? notes.get(position) : null;
 
-        holder.buttonForceAverage.setOnClickListener(v ->
-                forceAverageListener.onForceAverageClicked(evaluation.getId()));
+            holder.textEvaluationName.setText(evaluation.getName());
+
+            if (note != null && note.getNoteValue() != null) {
+                holder.textEvaluationNote.setText(String.format("%.1f / %d", note.getNoteValue(), evaluation.getPointsMax()));
+            } else {
+                holder.textEvaluationNote.setText("Non noté");
+            }
+
+            holder.buttonForceAverage.setOnClickListener(v ->
+                    forceAverageListener.onForceAverageClicked(evaluation.getId()));
+        }
     }
 
     @Override

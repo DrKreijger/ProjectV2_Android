@@ -32,4 +32,14 @@ public interface NoteDao {
 
     @Query("SELECT * FROM Note WHERE student_id = :studentId")
     List<Note> getNotesForStudent(long studentId);
+
+    @Query("UPDATE Note SET forced_value = :forcedNote WHERE student_id = :studentId AND eval_id = :evaluationId")
+    void updateForcedNoteForStudentEvaluation(long studentId, long evaluationId, double forcedNote);
+
+    @Query("SELECT * FROM Note WHERE student_id = :studentId AND eval_id IN (SELECT id FROM Evaluation WHERE parent_id = :parentEvaluationId)")
+    List<Note> getNotesForChildEvaluations(long studentId, long parentEvaluationId);
+
+    @Query("SELECT * FROM Note WHERE student_id = :studentId AND eval_id = :evaluationId")
+    Note getNoteForStudentEvaluation(long studentId, long evaluationId);
+
 }

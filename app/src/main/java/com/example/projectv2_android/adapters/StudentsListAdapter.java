@@ -1,5 +1,6 @@
 package com.example.projectv2_android.adapters;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,9 +32,14 @@ public class StudentsListAdapter extends RecyclerView.Adapter<StudentsListAdapte
         this.studentService = studentService;
     }
 
+    /**
+     * Met à jour la liste des étudiants.
+     */
     public void setData(List<Student> students) {
         studentList.clear();
-        studentList.addAll(students);
+        if (students != null) {
+            studentList.addAll(students);
+        }
         notifyDataSetChanged();
     }
 
@@ -47,8 +53,13 @@ public class StudentsListAdapter extends RecyclerView.Adapter<StudentsListAdapte
 
     @Override
     public void onBindViewHolder(@NonNull StudentViewHolder holder, int position) {
-        Student student = studentList.get(position);
-        holder.bind(student);
+        if (position >= 0 && position < studentList.size()) {
+            Student student = studentList.get(position);
+            holder.bind(student);
+        } else {
+            // Log en cas d'incohérence
+            Log.w("StudentsListAdapter", "Index " + position + " out of bounds for studentList.");
+        }
     }
 
     @Override
@@ -68,7 +79,7 @@ public class StudentsListAdapter extends RecyclerView.Adapter<StudentsListAdapte
 
             itemView.setOnClickListener(v -> {
                 int position = getAdapterPosition();
-                if (position != RecyclerView.NO_POSITION) {
+                if (position != RecyclerView.NO_POSITION && position < studentList.size()) {
                     Student student = studentList.get(position);
                     listener.onStudentClicked(student.getId());
                 }
@@ -76,18 +87,19 @@ public class StudentsListAdapter extends RecyclerView.Adapter<StudentsListAdapte
         }
 
         public void bind(Student student) {
-            textStudentName.setText(student.getFirstName() + " " + student.getName());
+            textStudentName.setText(String.format(Locale.getDefault(), "%s %s", student.getFirstName(), student.getName()));
 
+            // Calcul de la moyenne avec callback
             studentService.calculateStudentAverage(student.getId(), new StudentService.Callback<Double>() {
                 @Override
                 public void onSuccess(Double average) {
-                    // Mise à jour de l'UI sur le thread principal
+                    // Mise à jour sur le thread principal
                     textStudentAverage.post(() -> textStudentAverage.setText(String.format(Locale.getDefault(), "%.2f", average)));
                 }
 
                 @Override
                 public void onError(Exception e) {
-                    // Affiche "Erreur" en cas de problème
+                    // Affichage d'une erreur en cas de problème
                     textStudentAverage.post(() -> textStudentAverage.setText("Erreur"));
                 }
             });

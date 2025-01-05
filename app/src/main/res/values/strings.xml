@@ -26,4 +26,7 @@
     <string name="leaf_evaluation">Feuille d\'évaluation</string>
     <string name="parent_evaluation">Évaluation parent</string>
     <string name="error_initializing_dependencies">Erreur initialization des dépendances</string>
+    <string name="force_note_title">Forcer la note</string>
+    <string name="cancel">Annuler</string>
+    <string name="error_invalid_number">Nombre invalide</string>
 </resources>

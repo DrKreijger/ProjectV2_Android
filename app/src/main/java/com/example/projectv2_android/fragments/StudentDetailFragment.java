@@ -12,10 +12,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.projectv2_android.R;
 import com.example.projectv2_android.adapters.StudentEvaluationsAdapter;
 import com.example.projectv2_android.controllers.NoteController;
+import com.example.projectv2_android.dialogs.EditNoteDialogFragment;
+import com.example.projectv2_android.dialogs.ForceNoteDialogFragment;
 import com.example.projectv2_android.models.Evaluation;
 import com.example.projectv2_android.models.Note;
 import com.example.projectv2_android.repositories.EvaluationRepository;
@@ -23,6 +26,7 @@ import com.example.projectv2_android.repositories.NoteRepository;
 import com.example.projectv2_android.db.AppDatabase;
 
 import java.util.List;
+import java.util.concurrent.Executors;
 
 public class StudentDetailFragment extends Fragment {
 
@@ -92,20 +96,70 @@ public class StudentDetailFragment extends Fragment {
     }
 
     private void loadStudentDetails() {
-        // TODO: Récupérer les détails de l'étudiant depuis le StudentRepository
-        textStudentName.setText("Étudiant #" + studentId); // Remplacez par les données réelles
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                // Simuler la récupération des détails de l'étudiant
+                String studentName = "Étudiant #" + studentId; // Remplacez par une requête réelle
+
+                updateUI(() -> textStudentName.setText(studentName));
+            } catch (Exception e) {
+                showToast("Erreur lors du chargement des détails de l'étudiant");
+            }
+        });
     }
 
     private void loadStudentEvaluations() {
-        // Récupérer les évaluations pour la classe et les notes pour l'étudiant
-        List<Evaluation> evaluations = evaluationRepository.getAllEvaluationsForClass(classId);
-        List<Note> notes = noteController.getNotesForStudent(studentId);
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                List<Evaluation> evaluations = evaluationRepository.getAllEvaluationsForClass(classId);
+                List<Note> notes = noteController.getNotesForStudent(studentId);
 
-        // Associer les évaluations et les notes dans l'adaptateur
-        adapter.setData(evaluations, notes);
+                updateUI(() -> {
+                    if (evaluations.isEmpty()) {
+                        showToast("Aucune évaluation trouvée");
+                    } else {
+                        adapter.setData(evaluations, notes);
+                        checkIfEmpty();
+                    }
+                });
+            } catch (Exception e) {
+                showToast("Erreur : données incohérentes pour les évaluations et les notes");
+            }
+        });
+    }
+
+    private void onEvaluationClicked(long evaluationId) {
+        EditNoteDialogFragment dialog = EditNoteDialogFragment.newInstance(studentId, evaluationId);
+        dialog.setOnNoteAddedListener(this::loadStudentEvaluations);
+        dialog.show(getParentFragmentManager(), "AddNoteDialog");
     }
 
     private void onForceAverageClicked(long evaluationId) {
-        // TODO: Implémentez la logique pour forcer la moyenne (ouvrir un dialog, etc.)
+        ForceNoteDialogFragment dialog = ForceNoteDialogFragment.newInstance(evaluationId);
+        dialog.setOnForceNoteListener(forcedNote -> {
+            Executors.newSingleThreadExecutor().execute(() -> {
+                try {
+                    noteController.forceNoteForEvaluation(studentId, evaluationId, forcedNote);
+                    updateUI(this::loadStudentEvaluations);
+                } catch (Exception e) {
+                    showToast("Erreur lors de la mise à jour de la note forcée");
+                }
+            });
+        });
+        dialog.show(getParentFragmentManager(), "ForceAverageDialog");
+    }
+
+    private void checkIfEmpty() {
+        if (adapter.getItemCount() == 0) {
+            showToast("Aucune évaluation trouvée pour cet étudiant.");
+        }
+    }
+
+    private void showToast(String message) {
+        updateUI(() -> Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show());
+    }
+
+    private void updateUI(Runnable action) {
+        requireActivity().runOnUiThread(action);
     }
 }

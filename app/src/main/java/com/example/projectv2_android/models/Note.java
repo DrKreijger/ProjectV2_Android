@@ -34,7 +34,7 @@ public class Note {
     private long studentId;
 
     @ColumnInfo(name = "note_value")
-    private double noteValue;
+    private Double noteValue;
 
     @ColumnInfo(name = "forced_value")
     private Double forcedValue; // Nullable for forced notes
@@ -76,11 +76,11 @@ public class Note {
         this.studentId = studentId;
     }
 
-    public double getNoteValue() {
+    public Double getNoteValue() {
         return noteValue;
     }
 
-    public void setNoteValue(double noteValue) {
+    public void setNoteValue(Double noteValue) {
         this.noteValue = noteValue;
     }
 
