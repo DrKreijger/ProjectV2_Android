@@ -5,31 +5,43 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.projectv2_android.R;
 import com.example.projectv2_android.models.Evaluation;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class EvaluationsListAdapter extends RecyclerView.Adapter<EvaluationsListAdapter.EvaluationViewHolder> {
 
     private final List<Evaluation> evaluations = new ArrayList<>();
-    private final OnEvaluationClickListener listener;
-
-    private final List<Long> expandedEvaluations = new ArrayList<>(); // To keep track of expanded evaluations
+    private final Map<Long, Boolean> expandedEvaluations = new HashMap<>(); // To keep track of expanded evaluations
+//    private final OnEvaluationClickListener listener;
 
     public interface OnEvaluationClickListener {
         void onEvaluationClick(Evaluation evaluation);
     }
 
-    public EvaluationsListAdapter(OnEvaluationClickListener listener) {
-        this.listener = listener;
-    }
+//    public EvaluationsListAdapter(OnEvaluationClickListener listener) {
+//        this.listener = listener;
+//    }
 
     public void setData(List<Evaluation> evaluations) {
         this.evaluations.clear();
         this.evaluations.addAll(evaluations);
+
+        // Reset expansion states for new data
+        for (Evaluation evaluation : evaluations) {
+            if (!evaluation.isLeaf()) {
+                expandedEvaluations.put(evaluation.getId(), false); // Default to collapsed
+            }
+        }
+
         notifyDataSetChanged();
     }
 
@@ -44,12 +56,41 @@ public class EvaluationsListAdapter extends RecyclerView.Adapter<EvaluationsList
     @Override
     public void onBindViewHolder(@NonNull EvaluationViewHolder holder, int position) {
         Evaluation evaluation = evaluations.get(position);
-        holder.bind(evaluation);
+
+        // Determine if the item should be visible based on parent expansion
+        boolean isVisible = isItemVisible(position);
+        if (!isVisible) {
+            holder.itemView.setVisibility(View.GONE);
+            holder.itemView.setLayoutParams(new RecyclerView.LayoutParams(0, 0)); // Collapse the item completely
+        } else {
+            holder.itemView.setVisibility(View.VISIBLE);
+            RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+            holder.itemView.setLayoutParams(params); // Restore proper layout
+            holder.bind(evaluation);
+        }
     }
 
     @Override
     public int getItemCount() {
         return evaluations.size();
+    }
+
+    /**
+     * Determine if the item at the given position should be visible.
+     */
+    private boolean isItemVisible(int position) {
+        Evaluation evaluation = evaluations.get(position);
+
+        // Always show parent evaluations
+        if (evaluation.getParentId() == null) {
+            return true;
+        }
+
+        // Show child evaluations only if their parent is expanded
+        return expandedEvaluations.getOrDefault(evaluation.getParentId(), false);
     }
 
     class EvaluationViewHolder extends RecyclerView.ViewHolder {
@@ -71,17 +112,15 @@ public class EvaluationsListAdapter extends RecyclerView.Adapter<EvaluationsList
                 if (position != RecyclerView.NO_POSITION) {
                     Evaluation evaluation = evaluations.get(position);
 
-                    // Toggle expansion
+                    // Toggle expansion for parent evaluations
                     if (!evaluation.isLeaf()) {
-                        if (expandedEvaluations.contains(evaluation.getId())) {
-                            expandedEvaluations.remove(evaluation.getId());
-                        } else {
-                            expandedEvaluations.add(evaluation.getId());
-                        }
-                        notifyItemChanged(position);
+                        boolean isExpanded = expandedEvaluations.getOrDefault(evaluation.getId(), false);
+                        expandedEvaluations.put(evaluation.getId(), !isExpanded);
+                        notifyDataSetChanged(); // Refresh list to show/hide children
                     }
 
-                    listener.onEvaluationClick(evaluation);
+                    // Notify listener of click
+//                    listener.onEvaluationClick(evaluation);
                 }
             });
         }
@@ -98,7 +137,8 @@ public class EvaluationsListAdapter extends RecyclerView.Adapter<EvaluationsList
                 iconExpand.setVisibility(View.VISIBLE); // Show expand icon for parent
 
                 // Set icon rotation based on expansion state
-                iconExpand.setRotation(expandedEvaluations.contains(evaluation.getId()) ? 180f : 0f);
+                boolean isExpanded = expandedEvaluations.getOrDefault(evaluation.getId(), false);
+                iconExpand.setRotation(isExpanded ? 180f : 0f);
             }
         }
     }

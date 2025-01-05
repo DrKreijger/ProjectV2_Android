@@ -71,7 +71,7 @@ public class EvaluationsListFragment extends Fragment {
         recyclerView = view.findViewById(R.id.recycler_view_evaluations);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
 
-        adapter = new EvaluationsListAdapter(this::onEvaluationClicked);
+        adapter = new EvaluationsListAdapter();
         recyclerView.setAdapter(adapter);
 
         FloatingActionButton fabAddEvaluation = view.findViewById(R.id.fab_add_evaluation);
@@ -101,30 +101,30 @@ public class EvaluationsListFragment extends Fragment {
         });
     }
 
-    private void onEvaluationClicked(Evaluation evaluation) {
-        if (evaluation.isLeaf()) {
-            if (getActivity() instanceof EvaluationsListNavigator) {
-                ((EvaluationsListNavigator) getActivity()).openEvaluationDetail(evaluation.getId());
-            }
-        } else {
-            Executors.newSingleThreadExecutor().execute(() -> {
-                try {
-                    List<Evaluation> subEvaluations = evaluationController.getChildEvaluations(evaluation.getId());
-
-                    requireActivity().runOnUiThread(() -> {
-                        adapter.setData(subEvaluations);
-                        FloatingActionButton fabBack = getView().findViewById(R.id.fab_back);
-                        if (fabBack != null) {
-                            fabBack.setVisibility(View.VISIBLE);
-                        }
-                    });
-                } catch (Exception e) {
-                    requireActivity().runOnUiThread(() ->
-                            Toast.makeText(requireContext(), "Erreur lors du chargement des sous-évaluations", Toast.LENGTH_SHORT).show());
-                }
-            });
-        }
-    }
+//    private void onEvaluationClicked(Evaluation evaluation) {
+//        if (evaluation.isLeaf()) {
+//            if (getActivity() instanceof EvaluationsListNavigator) {
+//                ((EvaluationsListNavigator) getActivity()).openEvaluationDetail(evaluation.getId());
+//            }
+//        } else {
+//            Executors.newSingleThreadExecutor().execute(() -> {
+//                try {
+//                    List<Evaluation> subEvaluations = evaluationController.getChildEvaluations(evaluation.getId());
+//
+//                    requireActivity().runOnUiThread(() -> {
+//                        adapter.setData(subEvaluations);
+//                        FloatingActionButton fabBack = getView().findViewById(R.id.fab_back);
+//                        if (fabBack != null) {
+//                            fabBack.setVisibility(View.VISIBLE);
+//                        }
+//                    });
+//                } catch (Exception e) {
+//                    requireActivity().runOnUiThread(() ->
+//                            Toast.makeText(requireContext(), "Erreur lors du chargement des sous-évaluations", Toast.LENGTH_SHORT).show());
+//                }
+//            });
+//        }
+//    }
 
     private void showParentEvaluations() {
         loadEvaluations();
