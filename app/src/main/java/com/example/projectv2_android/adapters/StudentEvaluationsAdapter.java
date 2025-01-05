@@ -15,13 +15,15 @@ import com.example.projectv2_android.models.Evaluation;
 import com.example.projectv2_android.models.Note;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class StudentEvaluationsAdapter extends RecyclerView.Adapter<StudentEvaluationsAdapter.ViewHolder> {
 
     private final List<Evaluation> evaluations = new ArrayList<>();
     private final List<Note> notes = new ArrayList<>();
-    private final List<Long> expandedEvaluations = new ArrayList<>(); // Track expanded evaluations
+    private final Set<Long> expandedEvaluations = new HashSet<>(); // Track expanded evaluations
     private final OnForceAverageClickListener forceAverageListener;
     private OnNoteClickListener noteClickListener;
 
@@ -71,10 +73,10 @@ public class StudentEvaluationsAdapter extends RecyclerView.Adapter<StudentEvalu
             Evaluation evaluation = evaluations.get(position);
 
             // Bind evaluation data
-            holder.bind(evaluation);
+            holder.bind(evaluation, expandedEvaluations.contains(evaluation.getId()));
 
             // Expand/collapse sub-evaluations
-            holder.itemView.setOnClickListener(v -> {
+            holder.iconExpand.setOnClickListener(v -> {
                 if (!evaluation.isLeaf()) {
                     if (expandedEvaluations.contains(evaluation.getId())) {
                         expandedEvaluations.remove(evaluation.getId());
@@ -82,6 +84,13 @@ public class StudentEvaluationsAdapter extends RecyclerView.Adapter<StudentEvalu
                         expandedEvaluations.add(evaluation.getId());
                     }
                     notifyItemChanged(position);
+                }
+            });
+
+            // Listener for note click
+            holder.itemView.setOnClickListener(v -> {
+                if (noteClickListener != null) {
+                    noteClickListener.onNoteClick(evaluation.getId());
                 }
             });
 
@@ -112,13 +121,18 @@ public class StudentEvaluationsAdapter extends RecyclerView.Adapter<StudentEvalu
             iconExpand = itemView.findViewById(R.id.icon_expand); // Reference the ImageView
         }
 
-        public void bind(Evaluation evaluation) {
+        public void bind(Evaluation evaluation, boolean isExpanded) {
             textEvaluationName.setText(evaluation.getName());
 
+            // Set note or default text
+            textEvaluationNote.setText(evaluation.isLeaf() ? "Non noté" : "Évaluation parente");
+
+            // Handle expand/collapse icon
             if (evaluation.isLeaf()) {
                 iconExpand.setVisibility(View.GONE);
             } else {
                 iconExpand.setVisibility(View.VISIBLE);
+                iconExpand.setImageResource(isExpanded ? R.drawable.ic_expand_less : R.drawable.ic_expand_more);
             }
         }
     }
