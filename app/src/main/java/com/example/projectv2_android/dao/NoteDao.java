@@ -42,4 +42,5 @@ public interface NoteDao {
     @Query("SELECT * FROM Note WHERE student_id = :studentId AND eval_id = :evaluationId")
     Note getNoteForStudentEvaluation(long studentId, long evaluationId);
 
+
 }

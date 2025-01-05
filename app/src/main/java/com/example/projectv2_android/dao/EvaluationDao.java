@@ -26,10 +26,10 @@ public interface EvaluationDao {
     List<EvaluationEntity> getChildEvaluations(long parentId);
 
     // Identifier les évaluations sans sous-évaluations (LeafEvaluation)
-    @Query("SELECT * FROM Evaluation WHERE id NOT IN (SELECT DISTINCT parent_id FROM Evaluation WHERE parent_id IS NOT NULL)")
+    @Query("SELECT * FROM evaluation WHERE is_leaf = 1")
     List<EvaluationEntity> getLeafEvaluations();
 
-    // Identifier les évaluations avec des sous-évaluations (ParentEvaluation)
-    @Query("SELECT * FROM Evaluation WHERE id IN (SELECT DISTINCT parent_id FROM Evaluation WHERE parent_id IS NOT NULL)")
+    @Query("SELECT * FROM evaluation WHERE is_leaf = 0")
     List<EvaluationEntity> getParentEvaluations();
+
 }

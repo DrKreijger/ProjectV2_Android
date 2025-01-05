@@ -23,8 +23,11 @@ public class EvaluationRepository {
     public long insertEvaluation(Evaluation evaluation) {
         Log.d("EvaluationRepository", "Insertion : " + evaluation.getName() + " | Parent ID : " + evaluation.getParentId());
         EvaluationEntity entity = mapToEntity(evaluation);
-        return evaluationDao.insertEvaluation(entity);
+        long id = evaluationDao.insertEvaluation(entity); // La méthode insert doit renvoyer un ID non nul
+        Log.d("EvaluationRepository", "ID généré pour l'évaluation : " + id);
+        return id;
     }
+
 
     public Evaluation findById(long id) {
         EvaluationEntity entity = evaluationDao.findById(id);
@@ -33,8 +36,12 @@ public class EvaluationRepository {
 
     public List<Evaluation> getAllEvaluationsForClass(long classId) {
         List<EvaluationEntity> entities = evaluationDao.getEvaluationsForClass(classId);
+        for (EvaluationEntity entity : entities) {
+            Log.d("EvaluationRepository", "Évaluation récupérée : " + entity.getName() + " | ID : " + entity.getId());
+        }
         return mapToEvaluations(entities);
     }
+
 
     public List<Evaluation> getChildEvaluations(long parentId) {
         Log.d("EvaluationRepository", "Récupération des enfants pour parent ID : " + parentId);
@@ -57,26 +64,32 @@ public class EvaluationRepository {
     private Evaluation mapToEvaluation(EvaluationEntity entity) {
         if (entity == null) return null;
 
+        Log.d("EvaluationRepository", "Mapping EvaluationEntity -> Evaluation | ID : " + entity.getId());
+
         if (isParentEvaluation(entity)) {
-            // Charger les enfants depuis la base de données
             List<Evaluation> children = mapToEvaluations(evaluationDao.getChildEvaluations(entity.getId()));
-            return new ParentEvaluation(
+            ParentEvaluation parentEvaluation = new ParentEvaluation(
                     entity.getName(),
                     entity.getClassId(),
                     entity.getParentId(),
                     entity.getPointsMax(),
-                    children // Fournir la liste des enfants
+                    children
             );
+            parentEvaluation.setId(entity.getId()); // Assurez-vous de définir l'ID ici
+            return parentEvaluation;
         } else {
-            return new LeafEvaluation(
+            LeafEvaluation leafEvaluation = new LeafEvaluation(
                     entity.getName(),
                     entity.getClassId(),
                     entity.getParentId(),
                     entity.getPointsMax(),
                     noteRepository
             );
+            leafEvaluation.setId(entity.getId()); // Assurez-vous de définir l'ID ici
+            return leafEvaluation;
         }
     }
+
 
 
     private List<Evaluation> mapToEvaluations(List<EvaluationEntity> entities) {
@@ -123,7 +136,8 @@ public class EvaluationRepository {
                 evaluation.getName(),
                 evaluation.getClassId(),
                 evaluation.getParentId(),
-                evaluation.getPointsMax()
+                evaluation.getPointsMax(),
+                evaluation.isLeaf()
         );
     }
 

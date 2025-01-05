@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -60,11 +61,13 @@ public class StudentDetailFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            studentId = getArguments().getLong(ARG_STUDENT_ID);
-            classId = getArguments().getLong(ARG_CLASS_ID);
+            studentId = getArguments().getLong(ARG_STUDENT_ID, -1);
+            classId = getArguments().getLong(ARG_CLASS_ID, -1);
         }
 
-        // Initialisation des DAO et repositories via AppDatabase
+        // Vérifiez que les IDs sont corrects
+        Log.d("StudentDetailFragment", "onCreate - studentId: " + studentId + ", classId: " + classId);
+
         NoteRepository noteRepository = new NoteRepository(AppDatabase.getInstance(requireContext()).noteDao());
         evaluationRepository = new EvaluationRepository(
                 AppDatabase.getInstance(requireContext()).evaluationDao(),
@@ -72,6 +75,7 @@ public class StudentDetailFragment extends Fragment {
         );
         noteController = new NoteController(noteRepository);
     }
+
 
     @Nullable
     @Override
@@ -117,6 +121,17 @@ public class StudentDetailFragment extends Fragment {
                 List<Evaluation> evaluations = evaluationRepository.getAllEvaluationsForClass(classId);
                 List<Note> notes = noteController.getNotesForStudent(studentId);
 
+                // Ajout de logs pour vérifier les données récupérées
+                Log.d("StudentDetailFragment", "Nombre d'évaluations récupérées : " + evaluations.size());
+                for (Evaluation eval : evaluations) {
+                    Log.d("StudentDetailFragment", "Évaluation : " + eval.getName() + " | ID : " + eval.getId());
+                }
+
+                Log.d("StudentDetailFragment", "Nombre de notes récupérées : " + notes.size());
+                for (Note note : notes) {
+                    Log.d("StudentDetailFragment", "Note : EvaluationID=" + note.getEvalId() + ", NoteValue=" + note.getNoteValue());
+                }
+
                 updateUI(() -> {
                     if (evaluations.isEmpty()) {
                         showToast("Aucune évaluation trouvée");
@@ -126,17 +141,36 @@ public class StudentDetailFragment extends Fragment {
                     }
                 });
             } catch (Exception e) {
+                Log.e("StudentDetailFragment", "Erreur lors du chargement des évaluations ou des notes", e);
                 showToast("Erreur : données incohérentes pour les évaluations et les notes");
             }
         });
     }
 
+
     private void onEvaluationClicked(long evaluationId) {
+        // Ajout d'un log pour vérifier les IDs
+        Log.d("StudentDetailFragment", "onEvaluationClicked - studentId: " + studentId + ", evaluationId: " + evaluationId);
+
+        // Vérifiez si les IDs sont valides
+        if (studentId <= 0) {
+            Log.e("StudentDetailFragment", "Invalid studentId: " + studentId);
+            showToast("Erreur : ID de l'étudiant invalide.");
+            return;
+        }
+
+        if (evaluationId <= 0) {
+            Log.e("StudentDetailFragment", "Invalid evaluationId: " + evaluationId);
+            showToast("Erreur : ID de l'évaluation invalide.");
+            return;
+        }
+
         // Ouvre le dialog pour éditer ou ajouter une note
         EditNoteDialogFragment dialog = EditNoteDialogFragment.newInstance(studentId, evaluationId);
         dialog.setOnNoteAddedListener(this::loadStudentEvaluations);
         dialog.show(getParentFragmentManager(), "EditNoteDialog");
     }
+
 
     private void onForceAverageClicked(long evaluationId) {
         // Ouvre le dialog pour forcer une moyenne

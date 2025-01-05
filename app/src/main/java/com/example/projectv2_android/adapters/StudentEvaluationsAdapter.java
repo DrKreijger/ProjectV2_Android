@@ -1,5 +1,6 @@
 package com.example.projectv2_android.adapters;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -49,15 +50,22 @@ public class StudentEvaluationsAdapter extends RecyclerView.Adapter<StudentEvalu
         this.notes.clear();
 
         if (evaluations != null) {
+            for (Evaluation evaluation : evaluations) {
+                Log.d("StudentEvaluationsAdapter", "Évaluation ajoutée : " + evaluation.getName() + " | ID : " + evaluation.getId());
+            }
             this.evaluations.addAll(evaluations);
         }
 
         if (notes != null) {
+            for (Note note : notes) {
+                Log.d("StudentEvaluationsAdapter", "Note ajoutée : EvaluationID=" + note.getEvalId() + ", NoteValue=" + note.getNoteValue());
+            }
             this.notes.addAll(notes);
         }
 
         notifyDataSetChanged();
     }
+
 
     @NonNull
     @Override
@@ -90,9 +98,13 @@ public class StudentEvaluationsAdapter extends RecyclerView.Adapter<StudentEvalu
             // Listener for note click
             holder.itemView.setOnClickListener(v -> {
                 if (noteClickListener != null) {
+                    Log.d("StudentEvaluationsAdapter", "Clique sur l'évaluation : " + evaluation.getName() + " | ID : " + evaluation.getId());
                     noteClickListener.onNoteClick(evaluation.getId());
+                } else {
+                    Log.w("StudentEvaluationsAdapter", "NoteClickListener n'est pas défini");
                 }
             });
+
 
             // Force average button
             holder.buttonForceAverage.setOnClickListener(v -> {

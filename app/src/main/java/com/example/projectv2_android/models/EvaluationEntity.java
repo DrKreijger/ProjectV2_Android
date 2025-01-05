@@ -6,7 +6,7 @@ import androidx.room.ForeignKey;
 import androidx.room.PrimaryKey;
 
 @Entity(
-        tableName = "Evaluation",
+        tableName = "evaluation",
         foreignKeys = {
                 @ForeignKey(
                         entity = EvaluationEntity.class,
@@ -15,7 +15,7 @@ import androidx.room.PrimaryKey;
                         onDelete = ForeignKey.CASCADE
                 ),
                 @ForeignKey(
-                        entity = Class.class, // Classe représentant la classe
+                        entity = Class.class,
                         parentColumns = "id",
                         childColumns = "class_id",
                         onDelete = ForeignKey.CASCADE
@@ -39,18 +39,20 @@ public class EvaluationEntity {
     @ColumnInfo(name = "name")
     private String name;
 
-    // Constructeur par défaut requis par Room
+    @ColumnInfo(name = "is_leaf") // Nouveau champ pour simplifier la distinction feuille/parent
+    private boolean isLeaf;
+
     public EvaluationEntity() {}
 
-    // Constructeur pour instancier une EvaluationEntity
-    public EvaluationEntity(String name, long classId, Long parentId, int pointsMax) {
+    public EvaluationEntity(String name, long classId, Long parentId, int pointsMax, boolean isLeaf) {
         this.name = name;
         this.classId = classId;
         this.parentId = parentId;
         this.pointsMax = pointsMax;
+        this.isLeaf = isLeaf;
     }
 
-    // Getters et Setters
+    // Getters et setters
     public long getId() {
         return id;
     }
@@ -90,4 +92,13 @@ public class EvaluationEntity {
     public void setName(String name) {
         this.name = name;
     }
+
+    public boolean isLeaf() {
+        return isLeaf;
+    }
+
+    public void setLeaf(boolean leaf) {
+        isLeaf = leaf;
+    }
 }
+
