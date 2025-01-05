@@ -1,10 +1,10 @@
 package com.example.projectv2_android.adapters;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -21,6 +21,7 @@ public class StudentEvaluationsAdapter extends RecyclerView.Adapter<StudentEvalu
 
     private final List<Evaluation> evaluations = new ArrayList<>();
     private final List<Note> notes = new ArrayList<>();
+    private final List<Long> expandedEvaluations = new ArrayList<>(); // Track expanded evaluations
     private final OnForceAverageClickListener forceAverageListener;
     private OnNoteClickListener noteClickListener;
 
@@ -41,19 +42,16 @@ public class StudentEvaluationsAdapter extends RecyclerView.Adapter<StudentEvalu
         this.noteClickListener = listener;
     }
 
-
     public void setData(List<Evaluation> evaluations, List<Note> notes) {
         this.evaluations.clear();
         this.notes.clear();
 
         if (evaluations != null) {
             this.evaluations.addAll(evaluations);
-            Log.d("StudentEvaluationsAdapter", "Nombre d'évaluations : " + evaluations.size());
         }
 
         if (notes != null) {
             this.notes.addAll(notes);
-            Log.d("StudentEvaluationsAdapter", "Nombre de notes : " + notes.size());
         }
 
         notifyDataSetChanged();
@@ -72,44 +70,29 @@ public class StudentEvaluationsAdapter extends RecyclerView.Adapter<StudentEvalu
         if (position >= 0 && position < evaluations.size()) {
             Evaluation evaluation = evaluations.get(position);
 
-            // Récupération sécurisée de la note
-            Note note = null;
-            if (notes != null && position < notes.size()) {
-                note = notes.get(position);
-            }
+            // Bind evaluation data
+            holder.bind(evaluation);
 
-            // Nom de l'évaluation
-            holder.textEvaluationName.setText(evaluation.getName());
-
-            // Affichage de la note ou de l'état "Non noté"
-            if (note != null && note.getNoteValue() != null) {
-                holder.textEvaluationNote.setText(String.format("%.1f / %d", note.getNoteValue(), evaluation.getPointsMax()));
-            } else {
-                holder.textEvaluationNote.setText("Non noté");
-            }
-
-            // Listener pour cliquer sur une évaluation et ouvrir le dialog de note
+            // Expand/collapse sub-evaluations
             holder.itemView.setOnClickListener(v -> {
-                if (noteClickListener != null) {
-                    noteClickListener.onNoteClick(evaluation.getId());
-                } else {
-                    Log.w("StudentEvaluationsAdapter", "NoteClickListener n'est pas défini");
+                if (!evaluation.isLeaf()) {
+                    if (expandedEvaluations.contains(evaluation.getId())) {
+                        expandedEvaluations.remove(evaluation.getId());
+                    } else {
+                        expandedEvaluations.add(evaluation.getId());
+                    }
+                    notifyItemChanged(position);
                 }
             });
 
-            // Listener pour forcer une moyenne
+            // Force average button
             holder.buttonForceAverage.setOnClickListener(v -> {
                 if (forceAverageListener != null) {
                     forceAverageListener.onForceAverageClicked(evaluation.getId());
-                } else {
-                    Log.w("StudentEvaluationsAdapter", "ForceAverageListener n'est pas défini");
                 }
             });
-        } else {
-            Log.w("StudentEvaluationsAdapter", "Position invalide : " + position);
         }
     }
-
 
     @Override
     public int getItemCount() {
@@ -119,12 +102,24 @@ public class StudentEvaluationsAdapter extends RecyclerView.Adapter<StudentEvalu
     static class ViewHolder extends RecyclerView.ViewHolder {
         TextView textEvaluationName, textEvaluationNote;
         Button buttonForceAverage;
+        ImageView iconExpand; // Expand/collapse icon
 
         ViewHolder(View itemView) {
             super(itemView);
             textEvaluationName = itemView.findViewById(R.id.text_evaluation_name);
             textEvaluationNote = itemView.findViewById(R.id.text_evaluation_note);
             buttonForceAverage = itemView.findViewById(R.id.button_force_average);
+            iconExpand = itemView.findViewById(R.id.icon_expand); // Reference the ImageView
+        }
+
+        public void bind(Evaluation evaluation) {
+            textEvaluationName.setText(evaluation.getName());
+
+            if (evaluation.isLeaf()) {
+                iconExpand.setVisibility(View.GONE);
+            } else {
+                iconExpand.setVisibility(View.VISIBLE);
+            }
         }
     }
 }

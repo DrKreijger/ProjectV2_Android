@@ -4,28 +4,59 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="8dp">
+    android:padding="8dp"
+    android:background="@drawable/item_background">
 
-    <TextView
-        android:id="@+id/text_evaluation_name"
+    <!-- Zone principale pour l'évaluation -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textStyle="bold"
-        android:textSize="16sp"
-        android:text="Evaluation Name" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
 
-    <TextView
-        android:id="@+id/text_points_max"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Points Max"
-        android:textSize="14sp" />
+        <TextView
+            android:id="@+id/text_evaluation_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:text="Nom de l'évaluation" />
 
+        <TextView
+            android:id="@+id/text_points_max"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="20 pts"
+            android:textSize="14sp" />
+
+        <!-- Indicateur de déroulement -->
+        <ImageView
+            android:id="@+id/icon_expand"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="8dp"
+            android:src="@drawable/ic_expand_more"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <!-- Zone pour afficher si c'est une évaluation parente ou feuille -->
     <TextView
         android:id="@+id/text_evaluation_type"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Type (Parent/Leaf)"
         android:textSize="14sp"
-        android:textColor="@android:color/darker_gray" />
+        android:textColor="@android:color/darker_gray"
+        android:paddingTop="4dp" />
+
+    <!-- Zone déroulante pour les sous-évaluations -->
+    <LinearLayout
+        android:id="@+id/sub_evaluations_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone"
+        android:paddingStart="16dp"
+        android:paddingTop="8dp" />
 </LinearLayout>
