@@ -2,6 +2,7 @@ package com.example.projectv2_android.dialogs;
 
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -135,6 +136,10 @@ public class AddEvaluationDialogFragment extends DialogFragment {
                     } catch (NumberFormatException e) {
                         Toast.makeText(getContext(), "Points maximum invalides pour une sous-évaluation.", Toast.LENGTH_SHORT).show();
                         return;
+                    }
+                    Log.d("AddEvaluationDialog", "Nombre de sous-évaluations : " + subEvaluations.size());
+                    for (Evaluation eval : subEvaluations) {
+                        Log.d("AddEvaluationDialog", "Sous-évaluation : " + eval.getName() + " | Points Max : " + eval.getPointsMax());
                     }
 
                     subEvaluations.add(new LeafEvaluation(

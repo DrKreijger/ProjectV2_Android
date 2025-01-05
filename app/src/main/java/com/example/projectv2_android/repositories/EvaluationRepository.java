@@ -1,5 +1,7 @@
 package com.example.projectv2_android.repositories;
 
+import android.util.Log;
+
 import com.example.projectv2_android.dao.EvaluationDao;
 import com.example.projectv2_android.models.Evaluation;
 import com.example.projectv2_android.models.EvaluationEntity;
@@ -19,6 +21,7 @@ public class EvaluationRepository {
     }
 
     public long insertEvaluation(Evaluation evaluation) {
+        Log.d("EvaluationRepository", "Insertion : " + evaluation.getName() + " | Parent ID : " + evaluation.getParentId());
         EvaluationEntity entity = mapToEntity(evaluation);
         return evaluationDao.insertEvaluation(entity);
     }
@@ -34,9 +37,12 @@ public class EvaluationRepository {
     }
 
     public List<Evaluation> getChildEvaluations(long parentId) {
+        Log.d("EvaluationRepository", "Récupération des enfants pour parent ID : " + parentId);
         List<EvaluationEntity> entities = evaluationDao.getChildEvaluations(parentId);
+        Log.d("EvaluationRepository", "Nombre d'enfants trouvés : " + entities.size());
         return mapToEvaluations(entities);
     }
+
 
     public List<ParentEvaluation> getParentEvaluations() {
         List<EvaluationEntity> entities = evaluationDao.getParentEvaluations();

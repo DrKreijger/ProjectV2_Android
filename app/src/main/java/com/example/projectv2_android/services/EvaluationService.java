@@ -86,8 +86,17 @@ public class EvaluationService {
 
     public long createParentEvaluation(String name, long classId, int pointsMax, List<Evaluation> children, Long parentId) {
         ParentEvaluation parentEvaluation = new ParentEvaluation(name, classId, parentId, pointsMax, children);
-        return evaluationRepository.insertEvaluation(parentEvaluation);
+        long parentIdGenerated = evaluationRepository.insertEvaluation(parentEvaluation);
+
+        for (Evaluation child : children) {
+            child.setParentId(parentIdGenerated);
+            evaluationRepository.insertEvaluation(child);
+            Log.d("EvaluationService", "Sous-évaluation ajoutée : " + child.getName() + " avec parentId : " + parentIdGenerated);
+        }
+
+        return parentIdGenerated;
     }
+
 
     public long createLeafEvaluation(String name, long classId, Long parentId, int pointsMax) {
         LeafEvaluation leafEvaluation = new LeafEvaluation(name, classId, parentId, pointsMax, noteRepository);
