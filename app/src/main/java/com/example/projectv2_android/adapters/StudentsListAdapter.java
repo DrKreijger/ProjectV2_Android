@@ -87,22 +87,30 @@ public class StudentsListAdapter extends RecyclerView.Adapter<StudentsListAdapte
         }
 
         public void bind(Student student) {
+            // Affiche le nom complet de l'étudiant
             textStudentName.setText(String.format(Locale.getDefault(), "%s %s", student.getFirstName(), student.getName()));
 
-            // Calcul de la moyenne avec callback
+            // Calcul et affichage de la moyenne pondérée
             studentService.calculateStudentAverage(student.getId(), new StudentService.Callback<Double>() {
                 @Override
                 public void onSuccess(Double average) {
-                    // Mise à jour sur le thread principal
-                    textStudentAverage.post(() -> textStudentAverage.setText(String.format(Locale.getDefault(), "%.2f", average)));
+                    // Affiche la moyenne arrondie sur 20
+                    double roundedAverage = roundToNearestHalf(average);
+                    textStudentAverage.post(() -> textStudentAverage.setText(
+                            String.format(Locale.getDefault(), "%.1f / 20", roundedAverage)
+                    ));
                 }
 
                 @Override
                 public void onError(Exception e) {
-                    // Affichage d'une erreur en cas de problème
+                    // Affiche une erreur en cas de problème
                     textStudentAverage.post(() -> textStudentAverage.setText("Erreur"));
                 }
             });
+        }
+
+        private double roundToNearestHalf(double value) {
+            return Math.round(value * 2) / 2.0; // Arrondit à 0.5 près
         }
     }
 }
