@@ -121,24 +121,11 @@ public class StudentDetailFragment extends Fragment {
                 List<Evaluation> evaluations = evaluationRepository.getAllEvaluationsForClass(classId);
                 List<Note> notes = noteController.getNotesForStudent(studentId);
 
-
-                // Ajout de logs pour vérifier les données récupérées
-                Log.d("StudentDetailFragment", "Nombre d'évaluations récupérées : " + evaluations.size());
-                for (Evaluation eval : evaluations) {
-                    Log.d("StudentDetailFragment", "Évaluation : " + eval.getName() + " | ID : " + eval.getId());
-                }
-
-                Log.d("StudentDetailFragment", "Nombre de notes récupérées : " + notes.size());
-                for (Note note : notes) {
-                    Log.d("StudentDetailFragment", "Note : EvaluationID=" + note.getEvalId() + ", NoteValue=" + note.getNoteValue());
-                }
-
-                updateUI(() -> {
+                requireActivity().runOnUiThread(() -> {
                     if (evaluations.isEmpty()) {
                         showToast("Aucune évaluation trouvée");
                     } else {
                         adapter.setData(evaluations, notes);
-                        checkIfEmpty();
                     }
                 });
             } catch (Exception e) {
@@ -147,6 +134,7 @@ public class StudentDetailFragment extends Fragment {
             }
         });
     }
+
 
 
     private void onEvaluationClicked(long evaluationId) {

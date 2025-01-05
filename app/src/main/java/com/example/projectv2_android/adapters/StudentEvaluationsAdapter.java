@@ -1,6 +1,5 @@
 package com.example.projectv2_android.adapters;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,13 +17,15 @@ import com.example.projectv2_android.models.Note;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 public class StudentEvaluationsAdapter extends RecyclerView.Adapter<StudentEvaluationsAdapter.ViewHolder> {
 
-    private final List<Evaluation> evaluations = new ArrayList<>();
+    private final List<Evaluation> originalEvaluations = new ArrayList<>(); // Liste complète des évaluations
+    private final List<Evaluation> displayedEvaluations = new ArrayList<>(); // Liste affichée
     private final List<Note> notes = new ArrayList<>();
-    private final Set<Long> expandedEvaluations = new HashSet<>(); // Track expanded evaluations
+    private final Set<Long> expandedEvaluationIds = new HashSet<>(); // IDs des évaluations expandées
     private final OnForceAverageClickListener forceAverageListener;
     private OnNoteClickListener noteClickListener;
 
@@ -32,13 +33,13 @@ public class StudentEvaluationsAdapter extends RecyclerView.Adapter<StudentEvalu
         void onForceAverageClicked(long evaluationId);
     }
 
+    public interface OnNoteClickListener {
+        void onNoteClick(long evaluationId);
+    }
+
     public StudentEvaluationsAdapter(OnNoteClickListener noteClickListener, OnForceAverageClickListener forceAverageListener) {
         this.noteClickListener = noteClickListener;
         this.forceAverageListener = forceAverageListener;
-    }
-
-    public interface OnNoteClickListener {
-        void onNoteClick(long evaluationId);
     }
 
     public void setOnNoteClickListener(OnNoteClickListener listener) {
@@ -46,23 +47,25 @@ public class StudentEvaluationsAdapter extends RecyclerView.Adapter<StudentEvalu
     }
 
     public void setData(List<Evaluation> evaluations, List<Note> notes) {
-        this.evaluations.clear();
+        originalEvaluations.clear();
+        displayedEvaluations.clear();
         this.notes.clear();
 
         if (evaluations != null) {
-            for (Evaluation evaluation : evaluations) {
-                Log.d("StudentEvaluationsAdapter", "Évaluation ajoutée : " + evaluation.getName() + " | ID : " + evaluation.getId());
+            originalEvaluations.addAll(evaluations);
+            // Ajouter seulement les évaluations parents par défaut à la liste affichée
+            for (Evaluation evaluation : originalEvaluations) {
+                if (evaluation.getParentId() == null) { // Les évaluations sans parent
+                    displayedEvaluations.add(evaluation);
+                }
             }
-            this.evaluations.addAll(evaluations);
         }
 
         if (notes != null) {
-            for (Note note : notes) {
-                Log.d("StudentEvaluationsAdapter", "Note ajoutée : EvaluationID=" + note.getEvalId() + ", NoteValue=" + note.getNoteValue());
-            }
             this.notes.addAll(notes);
         }
 
+        expandedEvaluationIds.clear(); // Réinitialiser l'état des expansions
         notifyDataSetChanged();
     }
 
@@ -71,102 +74,119 @@ public class StudentEvaluationsAdapter extends RecyclerView.Adapter<StudentEvalu
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_student_evaluation, parent, false);
-        return new ViewHolder(view);
+        return new ViewHolder(view); // Pas besoin de passer l'adaptateur ici
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        if (position >= 0 && position < evaluations.size()) {
-            Evaluation evaluation = evaluations.get(position);
+        Evaluation evaluation = displayedEvaluations.get(position);
 
-            // Récupérer la note correspondante pour cette évaluation
-            Note correspondingNote = null;
-            for (Note note : notes) {
-                if (note.getEvalId() == evaluation.getId()) {
-                    correspondingNote = note;
-                    break;
-                }
+        // Trouver la note correspondante
+        Note correspondingNote = null;
+        for (Note note : notes) {
+            if (note.getEvalId() == evaluation.getId()) {
+                correspondingNote = note;
+                break;
             }
-
-            // Bind evaluation data avec la note correspondante
-            holder.bind(evaluation, correspondingNote, expandedEvaluations.contains(evaluation.getId()));
-
-            // Expand/collapse sub-evaluations
-            holder.iconExpand.setOnClickListener(v -> {
-                if (!evaluation.isLeaf()) {
-                    if (expandedEvaluations.contains(evaluation.getId())) {
-                        expandedEvaluations.remove(evaluation.getId());
-                    } else {
-                        expandedEvaluations.add(evaluation.getId());
-                    }
-                    notifyItemChanged(position);
-                }
-            });
-
-            // Listener for note click
-            holder.itemView.setOnClickListener(v -> {
-                if (noteClickListener != null) {
-                    Log.d("StudentEvaluationsAdapter", "Clique sur l'évaluation : " + evaluation.getName() + " | ID : " + evaluation.getId());
-                    noteClickListener.onNoteClick(evaluation.getId());
-                } else {
-                    Log.w("StudentEvaluationsAdapter", "NoteClickListener n'est pas défini");
-                }
-            });
-
-            // Force average button
-            holder.buttonForceAverage.setOnClickListener(v -> {
-                if (forceAverageListener != null) {
-                    forceAverageListener.onForceAverageClicked(evaluation.getId());
-                }
-            });
         }
+
+        // Lier les données de l'évaluation et de la note
+        holder.bind(evaluation, correspondingNote);
+
+        // Gestion de l'icône expand/collapse
+        holder.iconExpand.setOnClickListener(v -> {
+            if (!evaluation.isLeaf()) {
+                if (expandedEvaluationIds.contains(evaluation.getId())) {
+                    collapse(evaluation);
+                } else {
+                    expand(evaluation);
+                }
+                // Rafraîchir le ViewHolder après modification
+                notifyItemChanged(position);
+            }
+        });
+
+        // Gestion du clic pour modifier/ajouter une note
+        holder.itemView.setOnClickListener(v -> {
+            if (noteClickListener != null) {
+                noteClickListener.onNoteClick(evaluation.getId());
+            }
+        });
+
+        // Gestion du clic sur "Forcer la moyenne"
+        holder.buttonForceAverage.setOnClickListener(v -> {
+            if (forceAverageListener != null) {
+                forceAverageListener.onForceAverageClicked(evaluation.getId());
+            }
+        });
     }
 
 
     @Override
     public int getItemCount() {
-        return evaluations.size();
+        return displayedEvaluations.size();
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
+    private void expand(Evaluation evaluation) {
+        int position = displayedEvaluations.indexOf(evaluation);
+        if (position != -1) {
+            List<Evaluation> subEvaluations = getSubEvaluations(evaluation.getId());
+            displayedEvaluations.addAll(position + 1, subEvaluations);
+            expandedEvaluationIds.add(evaluation.getId());
+            notifyItemRangeInserted(position + 1, subEvaluations.size());
+        }
+    }
+
+    private void collapse(Evaluation evaluation) {
+        int position = displayedEvaluations.indexOf(evaluation);
+        if (position != -1) {
+            List<Evaluation> subEvaluations = getSubEvaluations(evaluation.getId());
+            displayedEvaluations.removeAll(subEvaluations);
+            expandedEvaluationIds.remove(evaluation.getId());
+            notifyItemRangeRemoved(position + 1, subEvaluations.size());
+        }
+    }
+
+    private List<Evaluation> getSubEvaluations(long parentId) {
+        List<Evaluation> subEvaluations = new ArrayList<>();
+        for (Evaluation evaluation : originalEvaluations) {
+            if (evaluation.getParentId() != null && evaluation.getParentId() == parentId) {
+                subEvaluations.add(evaluation);
+            }
+        }
+        return subEvaluations;
+    }
+
+    class ViewHolder extends RecyclerView.ViewHolder {
         TextView textEvaluationName, textEvaluationNote;
         Button buttonForceAverage;
-        ImageView iconExpand; // Expand/collapse icon
+        ImageView iconExpand;
 
-        ViewHolder(View itemView) {
+        public ViewHolder(View itemView) {
             super(itemView);
             textEvaluationName = itemView.findViewById(R.id.text_evaluation_name);
             textEvaluationNote = itemView.findViewById(R.id.text_evaluation_note);
             buttonForceAverage = itemView.findViewById(R.id.button_force_average);
-            iconExpand = itemView.findViewById(R.id.icon_expand); // Reference the ImageView
+            iconExpand = itemView.findViewById(R.id.icon_expand);
         }
 
-        public void bind(Evaluation evaluation, Note note, boolean isExpanded) {
+        public void bind(Evaluation evaluation, Note note) {
             textEvaluationName.setText(evaluation.getName());
 
-            // Log pour le débogage
-            Log.d("StudentEvaluationsAdapter", "Binding evaluation: " + evaluation.getName() + " | ID: " + evaluation.getId());
-            if (note != null) {
-                Log.d("StudentEvaluationsAdapter", "Note associée: " + note.getNoteValue());
-            } else {
-                Log.d("StudentEvaluationsAdapter", "Aucune note associée trouvée.");
-            }
-
-            // Afficher la note ou un texte par défaut
             if (note != null && note.getNoteValue() != null) {
-                textEvaluationNote.setText(String.format("%.2f / %d", note.getNoteValue(), evaluation.getPointsMax()));
+                textEvaluationNote.setText(String.format(Locale.getDefault(), "%.2f / %d", note.getNoteValue(), evaluation.getPointsMax()));
             } else {
                 textEvaluationNote.setText(evaluation.isLeaf() ? "Non noté" : "Évaluation parente");
             }
 
-            // Gérer l'icône d'expand/collapse
             if (evaluation.isLeaf()) {
                 iconExpand.setVisibility(View.GONE);
             } else {
                 iconExpand.setVisibility(View.VISIBLE);
-                iconExpand.setImageResource(isExpanded ? R.drawable.ic_expand_less : R.drawable.ic_expand_more);
+                // Mettre à jour l'icône en fonction de l'état actuel
+                iconExpand.setImageResource(expandedEvaluationIds.contains(evaluation.getId()) ? R.drawable.ic_expand_less : R.drawable.ic_expand_more);
             }
         }
-    }
 
+    }
 }
