@@ -81,12 +81,13 @@ public class AddEvaluationDialogFragment extends DialogFragment {
         Button btnAddSubEvaluation = view.findViewById(R.id.btn_add_sub_evaluation);
         Button btnAdd = view.findViewById(R.id.btn_add_evaluation);
 
-        // Gestion de l'affichage des sous-évaluations
+        // Gérer la visibilité des champs pour les sous-évaluations
         checkBoxSubEvaluations.setOnCheckedChangeListener((buttonView, isChecked) -> {
             subEvaluationsContainer.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+            btnAddSubEvaluation.setVisibility(isChecked ? View.VISIBLE : View.GONE);
         });
 
-        // Ajout dynamique de sous-évaluations
+        // Ajouter dynamiquement des sous-évaluations
         btnAddSubEvaluation.setOnClickListener(v -> {
             View subEvaluationView = LayoutInflater.from(getContext())
                     .inflate(R.layout.item_sub_evaluation, subEvaluationsContainer, false);
@@ -98,24 +99,22 @@ public class AddEvaluationDialogFragment extends DialogFragment {
             String pointsMaxStr = inputPointsMax.getText().toString().trim();
 
             if (TextUtils.isEmpty(name)) {
-                Toast.makeText(getContext(), R.string.error_fill_all_fields, Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Veuillez entrer un nom pour l'évaluation.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            int pointsMax = 20; // Par défaut 20 points
+            final int pointsMax;
             try {
-                if (!TextUtils.isEmpty(pointsMaxStr)) {
-                    pointsMax = Integer.parseInt(pointsMaxStr);
-                }
+                pointsMax = TextUtils.isEmpty(pointsMaxStr) ? 20 : Integer.parseInt(pointsMaxStr);
             } catch (NumberFormatException e) {
-                Toast.makeText(getContext(), "Points maximum invalides", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Points maximum invalides.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             boolean hasSubEvaluations = checkBoxSubEvaluations.isChecked();
-            List<LeafEvaluation> subEvaluations = new ArrayList<>();
+            final List<LeafEvaluation> subEvaluations = new ArrayList<>();
 
-            // Si des sous-évaluations sont définies, les valider et les récupérer
+            // Récupérer les sous-évaluations
             if (hasSubEvaluations) {
                 for (int i = 0; i < subEvaluationsContainer.getChildCount(); i++) {
                     View subEvaluationView = subEvaluationsContainer.getChildAt(i);
@@ -126,7 +125,7 @@ public class AddEvaluationDialogFragment extends DialogFragment {
                     String subPointsMaxStr = inputSubPointsMax.getText().toString().trim();
 
                     if (TextUtils.isEmpty(subName) || TextUtils.isEmpty(subPointsMaxStr)) {
-                        Toast.makeText(getContext(), "Veuillez remplir toutes les sous-évaluations", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Veuillez remplir toutes les sous-évaluations.", Toast.LENGTH_SHORT).show();
                         return;
                     }
 
@@ -134,7 +133,7 @@ public class AddEvaluationDialogFragment extends DialogFragment {
                     try {
                         subPointsMax = Integer.parseInt(subPointsMaxStr);
                     } catch (NumberFormatException e) {
-                        Toast.makeText(getContext(), "Points maximum invalides pour une sous-évaluation", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Points maximum invalides pour une sous-évaluation.", Toast.LENGTH_SHORT).show();
                         return;
                     }
 
@@ -149,35 +148,34 @@ public class AddEvaluationDialogFragment extends DialogFragment {
             }
 
             // Exécuter l'ajout dans un thread en arrière-plan
-            int finalPointsMax = pointsMax;
             Executors.newSingleThreadExecutor().execute(() -> {
                 long evaluationId;
                 if (hasSubEvaluations) {
-                    // Convertir la liste de LeafEvaluation en liste générique Evaluation
+                    // Convertir la liste de LeafEvaluation en liste de Evaluation
                     List<Evaluation> subEvaluationsAsEvaluations = new ArrayList<>(subEvaluations);
 
-                    // Création d'une ParentEvaluation
-                    evaluationId = evaluationController.createParentEvaluation(name, classId, finalPointsMax, subEvaluationsAsEvaluations, null);
+                    evaluationId = evaluationController.createParentEvaluation(name, classId, pointsMax, subEvaluationsAsEvaluations, null);
                 } else {
-                    // Création d'une LeafEvaluation
-                    evaluationId = evaluationController.createLeafEvaluation(name, classId, null, finalPointsMax);
+                    evaluationId = evaluationController.createLeafEvaluation(name, classId, null, pointsMax);
                 }
 
                 requireActivity().runOnUiThread(() -> {
                     if (evaluationId > 0) {
-                        Toast.makeText(getContext(), "Évaluation ajoutée avec succès", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Évaluation ajoutée avec succès.", Toast.LENGTH_SHORT).show();
                         if (listener != null) {
                             listener.onEvaluationAdded();
                         }
                         dismiss();
                     } else {
-                        Toast.makeText(getContext(), "Erreur lors de l'ajout de l'évaluation", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Erreur lors de l'ajout de l'évaluation.", Toast.LENGTH_SHORT).show();
                     }
                 });
             });
+
         });
 
         return view;
     }
+
 
 }
