@@ -42,7 +42,8 @@ public class EvaluationEntity {
     @ColumnInfo(name = "is_leaf") // Nouveau champ pour simplifier la distinction feuille/parent
     private boolean isLeaf;
 
-    public EvaluationEntity() {}
+    public EvaluationEntity() {
+    }
 
     public EvaluationEntity(String name, long classId, Long parentId, int pointsMax, boolean isLeaf) {
         this.name = name;

@@ -10,7 +10,8 @@ public class Class {
 
     private String name; // ex. "BA1", "BA2", etc.
 
-    public Class() { }
+    public Class() {
+    }
 
     public Class(String name) {
         this.name = name;

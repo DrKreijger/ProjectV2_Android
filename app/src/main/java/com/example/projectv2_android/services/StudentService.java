@@ -137,7 +137,6 @@ public class StudentService {
     }
 
 
-
     /**
      * Calcule la note d'un étudiant pour une évaluation spécifique, en tenant compte des sous-évaluations et des notes forcées.
      */
@@ -203,8 +202,6 @@ public class StudentService {
     }
 
 
-
-
     private boolean isSubEvaluation(Evaluation evaluation, List<Evaluation> evaluations) {
         if (evaluation == null || evaluations == null || evaluations.isEmpty()) {
             Log.d("StudentService", "Échec de détection de sous-évaluation : la liste ou l'évaluation est invalide.");
@@ -235,7 +232,6 @@ public class StudentService {
         Log.d("StudentService", "L'évaluation " + evaluation.getName() + " n'est pas une sous-évaluation.");
         return false;
     }
-
 
 
     /**

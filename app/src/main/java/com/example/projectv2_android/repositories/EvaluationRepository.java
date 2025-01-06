@@ -92,7 +92,6 @@ public class EvaluationRepository {
     }
 
 
-
     private List<Evaluation> mapToEvaluations(List<EvaluationEntity> entities) {
         List<Evaluation> evaluations = new ArrayList<>();
         for (EvaluationEntity entity : entities) {
@@ -157,8 +156,6 @@ public class EvaluationRepository {
 
         return mapToEvaluations(evaluationEntities);
     }
-
-
 
 
 }

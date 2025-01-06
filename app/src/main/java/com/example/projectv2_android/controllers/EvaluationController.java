@@ -22,8 +22,8 @@ public class EvaluationController {
         return evaluationService.getChildEvaluations(parentId);
     }
 
-    public double calculateWeightedAverage(long studentId,long evaluationId) {
-        return evaluationService.calculateWeightedAverage(studentId,evaluationId);
+    public double calculateWeightedAverage(long studentId, long evaluationId) {
+        return evaluationService.calculateWeightedAverage(studentId, evaluationId);
     }
 
     public long createParentEvaluation(String name, long classId, int pointsMax, List<Evaluation> children, Long parentId) {

@@ -125,9 +125,9 @@ public class EvaluationService {
 
     public interface Callback<T> {
         void onResult(T result);
+
         void onError(Exception e);
     }
-
 
 
     public long createParentEvaluation(String name, long classId, int pointsMax, List<Evaluation> children, Long parentId) {
@@ -148,8 +148,6 @@ public class EvaluationService {
         LeafEvaluation leafEvaluation = new LeafEvaluation(name, classId, parentId, pointsMax, noteRepository);
         return evaluationRepository.insertEvaluation(leafEvaluation);
     }
-
-
 
 
     /**

@@ -46,7 +46,6 @@ public class NoteController {
     }
 
 
-
     public boolean deleteNotesForEvaluation(long evalId) {
         return noteRepository.deleteNotesForEvaluation(evalId) > 0;
     }
