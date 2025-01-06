@@ -6,6 +6,7 @@ import com.example.projectv2_android.dao.EvaluationDao;
 import com.example.projectv2_android.models.Evaluation;
 import com.example.projectv2_android.models.EvaluationEntity;
 import com.example.projectv2_android.models.LeafEvaluation;
+import com.example.projectv2_android.models.Note;
 import com.example.projectv2_android.models.ParentEvaluation;
 
 import java.util.ArrayList;
@@ -145,4 +146,19 @@ public class EvaluationRepository {
         List<EvaluationEntity> children = evaluationDao.getChildEvaluations(entity.getId());
         return !children.isEmpty();
     }
+
+    public List<Evaluation> getAllEvaluationsForStudent(long studentId) {
+        if (studentId <= 0) {
+            throw new IllegalArgumentException("L'ID de l'étudiant doit être valide !");
+        }
+
+        List<EvaluationEntity> evaluationEntities = evaluationDao.getEvaluationsForStudent(studentId);
+        Log.d("EvaluationRepository", "Évaluations récupérées pour l'étudiant " + studentId + " : " + evaluationEntities.size());
+
+        return mapToEvaluations(evaluationEntities);
+    }
+
+
+
+
 }

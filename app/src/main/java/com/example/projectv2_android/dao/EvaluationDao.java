@@ -32,4 +32,8 @@ public interface EvaluationDao {
     @Query("SELECT * FROM evaluation WHERE is_leaf = 0")
     List<EvaluationEntity> getParentEvaluations();
 
+    @Query("SELECT * FROM Evaluation WHERE id IN (SELECT eval_id FROM Note WHERE student_id = :studentId)")
+    List<EvaluationEntity> getEvaluationsForStudent(long studentId);
+
+
 }
