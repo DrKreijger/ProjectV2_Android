@@ -86,7 +86,12 @@ public class StudentDetailFragment extends Fragment {
         recyclerView = view.findViewById(R.id.recycler_evaluations);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new StudentEvaluationsAdapter(studentId,this::onEvaluationClicked, this::onForceAverageClicked, evaluationService);
+        adapter = new StudentEvaluationsAdapter(
+                studentId,
+                this::onEvaluationClicked,
+                this::onForceAverageClicked,
+                evaluationService
+        );
         recyclerView.setAdapter(adapter);
 
         // Ajout du clic pour modifier ou ajouter une note
@@ -136,38 +141,43 @@ public class StudentDetailFragment extends Fragment {
     }
 
     private void onEvaluationClicked(long evaluationId) {
-        // Ajout d'un log pour vérifier les IDs
         Log.d("StudentDetailFragment", "onEvaluationClicked - studentId: " + studentId + ", evaluationId: " + evaluationId);
 
-        // Vérifiez si les IDs sont valides
-        if (studentId <= 0) {
-            Log.e("StudentDetailFragment", "Invalid studentId: " + studentId);
-            showToast("Erreur : ID de l'étudiant invalide.");
+        if (studentId <= 0 || evaluationId <= 0) {
+            Log.e("StudentDetailFragment", "Invalid IDs: studentId=" + studentId + ", evaluationId=" + evaluationId);
+            showToast("Erreur : ID invalide.");
             return;
         }
 
-        if (evaluationId <= 0) {
-            Log.e("StudentDetailFragment", "Invalid evaluationId: " + evaluationId);
-            showToast("Erreur : ID de l'évaluation invalide.");
-            return;
-        }
-
-        // Ouvre le dialog pour éditer ou ajouter une note
-        EditNoteDialogFragment dialog = EditNoteDialogFragment.newInstance(studentId, evaluationId);
-        dialog.setOnNoteAddedListener(this::loadStudentEvaluations);
-        dialog.show(getParentFragmentManager(), "EditNoteDialog");
+        // Désactive le clic direct sur les parents
+        Executors.newSingleThreadExecutor().execute(() -> {
+            Evaluation evaluation = evaluationRepository.findById(evaluationId);
+            if (evaluation != null && !evaluation.isLeaf()) {
+                updateUI(() -> showToast("Veuillez utiliser le bouton pour forcer la moyenne."));
+            } else if (evaluation != null) {
+                // Si c'est une feuille, ouvrir le dialog sur le thread principal
+                updateUI(() -> {
+                    EditNoteDialogFragment dialog = EditNoteDialogFragment.newInstance(studentId, evaluationId);
+                    dialog.setOnNoteAddedListener(this::loadStudentEvaluations);
+                    dialog.show(getParentFragmentManager(), "EditNoteDialog");
+                });
+            } else {
+                updateUI(() -> showToast("Erreur : Évaluation non trouvée."));
+            }
+        });
     }
 
-    private void onForceAverageClicked(long evaluationId) {
-        // Ouvre le dialog pour forcer une moyenne
-        ForceNoteDialogFragment dialog = ForceNoteDialogFragment.newInstance(evaluationId);
+
+    private void onForceAverageClicked(long evaluationId, double maxPoints) {
+        ForceNoteDialogFragment dialog = ForceNoteDialogFragment.newInstance(evaluationId, maxPoints);
         dialog.setOnForceNoteListener(forcedNote -> {
             Executors.newSingleThreadExecutor().execute(() -> {
                 try {
                     noteController.forceNoteForEvaluation(studentId, evaluationId, forcedNote);
                     updateUI(this::loadStudentEvaluations);
                 } catch (Exception e) {
-                    showToast("Erreur lors de la mise à jour de la note forcée");
+                    Log.e("StudentDetailFragment", "Erreur lors de la mise à jour de la note forcée", e);
+                    showToast("Erreur : impossible de forcer la note.");
                 }
             });
         });

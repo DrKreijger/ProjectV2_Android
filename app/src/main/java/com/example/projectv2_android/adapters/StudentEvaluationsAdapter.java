@@ -34,7 +34,7 @@ public class StudentEvaluationsAdapter extends RecyclerView.Adapter<StudentEvalu
     private long studentId;
 
     public interface OnForceAverageClickListener {
-        void onForceAverageClicked(long evaluationId);
+        void onForceAverageClicked(long evaluationId, double maxPoints);
     }
 
     public interface OnNoteClickListener {
@@ -121,7 +121,7 @@ public class StudentEvaluationsAdapter extends RecyclerView.Adapter<StudentEvalu
         // Gestion du clic sur "Forcer la moyenne"
         holder.buttonForceAverage.setOnClickListener(v -> {
             if (forceAverageListener != null) {
-                forceAverageListener.onForceAverageClicked(evaluation.getId());
+                forceAverageListener.onForceAverageClicked(evaluation.getId(), evaluation.getPointsMax());
             }
         });
     }
@@ -175,12 +175,18 @@ public class StudentEvaluationsAdapter extends RecyclerView.Adapter<StudentEvalu
         }
 
         public void bind(Evaluation evaluation, Note note) {
-            Log.d("StudentEvaluationsAdapter", "Binding evaluation: " + evaluation.getName() + ", isLeaf: " + evaluation.isLeaf());
-
             textEvaluationName.setText(evaluation.getName());
 
-            if (note != null && note.getNoteValue() != null) {
-                Log.d("StudentEvaluationsAdapter", "Note for " + evaluation.getName() + ": " + note.getNoteValue());
+            if (note != null && note.getForcedValue() != null) {
+                // Afficher la note forcée
+                textEvaluationNote.setText(String.format(
+                        Locale.getDefault(),
+                        "%.2f / %d (forcée)",
+                        note.getForcedValue(),
+                        evaluation.getPointsMax()
+                ));
+            } else if (note != null && note.getNoteValue() != null) {
+                // Afficher la note normale
                 textEvaluationNote.setText(String.format(
                         Locale.getDefault(),
                         "%.2f / %d",
@@ -193,39 +199,60 @@ public class StudentEvaluationsAdapter extends RecyclerView.Adapter<StudentEvalu
                     @Override
                     public void onResult(Double result) {
                         textEvaluationNote.post(() -> {
+                            // Arrondi à 0,5 près
                             double roundedResult = Math.round(result * 2) / 2.0;
-                            Log.d("StudentEvaluationsAdapter", "Calculated average for " + evaluation.getName() + ": " + roundedResult);
+                            String noteForcedText = (note != null && note.getForcedValue() != null) ? " (forcée)" : "";
                             textEvaluationNote.setText(String.format(
                                     Locale.getDefault(),
-                                    "Moyenne : %.1f / %d",
+                                    "Moyenne : %.1f / %d%s",
                                     roundedResult,
-                                    evaluation.getPointsMax()
+                                    evaluation.getPointsMax(),
+                                    noteForcedText
                             ));
                         });
                     }
 
                     @Override
                     public void onError(Exception e) {
-                        Log.e("StudentEvaluationsAdapter", "Error calculating average for " + evaluation.getName(), e);
                         textEvaluationNote.post(() -> textEvaluationNote.setText("Erreur de calcul"));
                     }
                 });
             } else {
-                Log.d("StudentEvaluationsAdapter", "No note available for " + evaluation.getName());
                 textEvaluationNote.setText("Non noté");
             }
 
             if (evaluation.isLeaf()) {
+                // Icône d'expansion non visible pour les feuilles
                 iconExpand.setVisibility(View.GONE);
+                buttonForceAverage.setVisibility(View.GONE); // Cacher le bouton pour les enfants
             } else {
+                // Icône visible pour les évaluations parentes
                 iconExpand.setVisibility(View.VISIBLE);
                 iconExpand.setImageResource(
                         expandedEvaluationIds.contains(evaluation.getId())
                                 ? R.drawable.ic_expand_less
                                 : R.drawable.ic_expand_more
                 );
+                buttonForceAverage.setVisibility(View.VISIBLE); // Afficher le bouton pour les parents
+            }
+
+            // Désactiver le clic sur les parents directement
+            itemView.setOnClickListener(v -> {
+                if (evaluation.isLeaf() && noteClickListener != null) {
+                    noteClickListener.onNoteClick(evaluation.getId());
+                }
+            });
+
+            // Gestion de l'état forcé
+            if (note != null && note.getForcedValue() != null) {
+                buttonForceAverage.setText("Modifier la note forcée");
+                buttonForceAverage.setBackgroundTintList(itemView.getContext().getResources().getColorStateList(R.color.forced_note_color));
+            } else {
+                buttonForceAverage.setText("Forcer la moyenne");
+                buttonForceAverage.setBackgroundTintList(itemView.getContext().getResources().getColorStateList(R.color.default_button_color));
             }
         }
+
 
 
     }

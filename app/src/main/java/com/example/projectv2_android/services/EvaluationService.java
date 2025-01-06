@@ -111,12 +111,6 @@ public class EvaluationService {
     }
 
 
-
-
-
-
-
-
     public void calculateWeightedAverageAsync(long studentId, long evaluationId, Callback<Double> callback) {
         Executors.newSingleThreadExecutor().execute(() -> {
             try {
