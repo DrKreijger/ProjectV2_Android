@@ -2,25 +2,45 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:padding="8dp">
+    android:orientation="vertical"
+    android:padding="8dp"
+    android:background="?attr/selectableItemBackground">
 
-    <!-- Nom complet de l'étudiant -->
-    <TextView
-        android:id="@+id/text_student_name"
-        android:layout_width="0dp"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="Nom de l'étudiant"
-        android:textSize="16sp"
-        android:textStyle="bold" />
+        android:orientation="horizontal">
 
-    <!-- Moyenne pondérée -->
+        <!-- Nom complet de l'étudiant -->
+        <TextView
+            android:id="@+id/text_student_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Nom de l'étudiant"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/black" />
+
+        <!-- Moyenne pondérée -->
+        <TextView
+            android:id="@+id/text_student_average"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0.0 / 20"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/black" />
+    </LinearLayout>
+
+    <!-- Matricule de l'étudiant -->
     <TextView
-        android:id="@+id/text_student_average"
-        android:layout_width="wrap_content"
+        android:id="@+id/text_student_matricule"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="0.0 / 20"
-        android:textSize="16sp"
-        android:textStyle="bold" />
+        android:text="Matricule : 123456"
+        android:textSize="14sp"
+        android:textColor="@color/gray"
+        android:layout_marginTop="4dp" />
+
 </LinearLayout>

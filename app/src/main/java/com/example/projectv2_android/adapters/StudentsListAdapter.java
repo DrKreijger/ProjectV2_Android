@@ -71,11 +71,13 @@ public class StudentsListAdapter extends RecyclerView.Adapter<StudentsListAdapte
 
         private final TextView textStudentName;
         private final TextView textStudentAverage;
+        private final TextView textStudentMatricule;
 
         public StudentViewHolder(@NonNull View itemView) {
             super(itemView);
             textStudentName = itemView.findViewById(R.id.text_student_name);
             textStudentAverage = itemView.findViewById(R.id.text_student_average);
+            textStudentMatricule = itemView.findViewById(R.id.text_student_matricule);
 
             itemView.setOnClickListener(v -> {
                 int position = getAdapterPosition();
@@ -89,6 +91,9 @@ public class StudentsListAdapter extends RecyclerView.Adapter<StudentsListAdapte
         public void bind(Student student) {
             // Affiche le nom complet de l'étudiant
             textStudentName.setText(String.format(Locale.getDefault(), "%s %s", student.getFirstName(), student.getName()));
+
+            // Affiche le matricule de l'étudiant
+            textStudentMatricule.setText(String.format(Locale.getDefault(), "Matricule : %s", student.getMatricule()));
 
             // Calcul et affichage de la moyenne pondérée
             studentService.calculateStudentAverage(student.getId(), new StudentService.Callback<Double>() {
