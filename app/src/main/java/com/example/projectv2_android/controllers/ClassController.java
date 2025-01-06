@@ -26,17 +26,4 @@ public class ClassController {
         return classService.createClass(name);
     }
 
-    /**
-     * Trouve une classe par son ID.
-     */
-    public Class getClassById(long classId) {
-        return classService.findClassById(classId);
-    }
-
-    /**
-     * Supprime une classe.
-     */
-    public boolean removeClass(long classId) {
-        return classService.deleteClass(classId);
-    }
 }
