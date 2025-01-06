@@ -133,13 +133,4 @@ public class NoteRepository {
     }
 
 
-    /**
-     * Récupère toutes les notes pour les sous-évaluations d'une évaluation parent.
-     */
-    public List<Note> getNotesForChildEvaluations(long studentId, long parentEvaluationId) {
-        if (studentId <= 0 || parentEvaluationId <= 0) {
-            throw new IllegalArgumentException("L'ID de l'étudiant ou de l'évaluation parent est invalide");
-        }
-        return noteDao.getNotesForChildEvaluations(studentId, parentEvaluationId);
-    }
 }

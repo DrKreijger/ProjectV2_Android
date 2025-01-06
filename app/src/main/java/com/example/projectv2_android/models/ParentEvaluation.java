@@ -18,16 +18,4 @@ public class ParentEvaluation extends Evaluation {
         return children;
     }
 
-    @Override
-    public double calculateScoreForStudent(long studentId) {
-        double totalScore = 0.0;
-        double totalMaxPoints = 0.0;
-
-        for (Evaluation child : children) {
-            totalScore += child.calculateScoreForStudent(studentId);
-            totalMaxPoints += child.getPointsMax();
-        }
-
-        return totalMaxPoints == 0 ? 0.0 : (totalScore / totalMaxPoints) * getPointsMax();
-    }
 }

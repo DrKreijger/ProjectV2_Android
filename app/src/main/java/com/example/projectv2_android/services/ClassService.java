@@ -30,17 +30,4 @@ public class ClassService {
         return classRepository.insertClass(newClass);
     }
 
-    /**
-     * Trouve une classe par son ID.
-     */
-    public Class findClassById(long classId) {
-        return classRepository.findById(classId);
-    }
-
-    /**
-     * Supprime une classe.
-     */
-    public boolean deleteClass(long classId) {
-        return classRepository.deleteClass(classId) > 0;
-    }
 }

@@ -37,34 +37,16 @@ public abstract class Evaluation {
         return classId;
     }
 
-    public void setClassId(long classId) {
-        this.classId = classId;
-    }
-
     public int getPointsMax() {
         return pointsMax;
-    }
-
-    public void setPointsMax(int pointsMax) {
-        this.pointsMax = pointsMax;
     }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public boolean isLeaf() {
         return isLeaf;
     }
 
-    public void setLeaf(boolean leaf) {
-        isLeaf = leaf;
-    }
-
-    // Méthodes abstraites
-    public abstract double calculateScoreForStudent(long studentId);
 }
