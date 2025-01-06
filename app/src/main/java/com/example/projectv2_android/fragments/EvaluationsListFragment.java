@@ -81,9 +81,6 @@ public class EvaluationsListFragment extends Fragment {
             dialog.show(getParentFragmentManager(), "AddEvaluationDialog");
         });
 
-        FloatingActionButton fabBack = view.findViewById(R.id.fab_back);
-        fabBack.setOnClickListener(v -> showParentEvaluations());
-
         loadEvaluations();
         return view;
     }
@@ -101,41 +98,4 @@ public class EvaluationsListFragment extends Fragment {
         });
     }
 
-//    private void onEvaluationClicked(Evaluation evaluation) {
-//        if (evaluation.isLeaf()) {
-//            if (getActivity() instanceof EvaluationsListNavigator) {
-//                ((EvaluationsListNavigator) getActivity()).openEvaluationDetail(evaluation.getId());
-//            }
-//        } else {
-//            Executors.newSingleThreadExecutor().execute(() -> {
-//                try {
-//                    List<Evaluation> subEvaluations = evaluationController.getChildEvaluations(evaluation.getId());
-//
-//                    requireActivity().runOnUiThread(() -> {
-//                        adapter.setData(subEvaluations);
-//                        FloatingActionButton fabBack = getView().findViewById(R.id.fab_back);
-//                        if (fabBack != null) {
-//                            fabBack.setVisibility(View.VISIBLE);
-//                        }
-//                    });
-//                } catch (Exception e) {
-//                    requireActivity().runOnUiThread(() ->
-//                            Toast.makeText(requireContext(), "Erreur lors du chargement des sous-évaluations", Toast.LENGTH_SHORT).show());
-//                }
-//            });
-//        }
-//    }
-
-    private void showParentEvaluations() {
-        loadEvaluations();
-
-        FloatingActionButton fabBack = getView().findViewById(R.id.fab_back);
-        if (fabBack != null) {
-            fabBack.setVisibility(View.GONE);
-        }
-    }
-
-    public interface EvaluationsListNavigator {
-        void openEvaluationDetail(long evaluationId);
-    }
 }

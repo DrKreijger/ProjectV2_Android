@@ -21,15 +21,6 @@ public class EvaluationsListAdapter extends RecyclerView.Adapter<EvaluationsList
 
     private final List<Evaluation> evaluations = new ArrayList<>();
     private final Map<Long, Boolean> expandedEvaluations = new HashMap<>(); // To keep track of expanded evaluations
-//    private final OnEvaluationClickListener listener;
-
-    public interface OnEvaluationClickListener {
-        void onEvaluationClick(Evaluation evaluation);
-    }
-
-//    public EvaluationsListAdapter(OnEvaluationClickListener listener) {
-//        this.listener = listener;
-//    }
 
     public void setData(List<Evaluation> evaluations) {
         this.evaluations.clear();
