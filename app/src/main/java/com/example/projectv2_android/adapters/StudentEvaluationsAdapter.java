@@ -1,5 +1,6 @@
 package com.example.projectv2_android.adapters;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.projectv2_android.R;
 import com.example.projectv2_android.models.Evaluation;
 import com.example.projectv2_android.models.Note;
+import com.example.projectv2_android.services.EvaluationService;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -27,7 +29,9 @@ public class StudentEvaluationsAdapter extends RecyclerView.Adapter<StudentEvalu
     private final List<Note> notes = new ArrayList<>();
     private final Set<Long> expandedEvaluationIds = new HashSet<>(); // IDs des évaluations expandées
     private final OnForceAverageClickListener forceAverageListener;
+    private final EvaluationService evaluationService; // Service des évaluations
     private OnNoteClickListener noteClickListener;
+    private long studentId;
 
     public interface OnForceAverageClickListener {
         void onForceAverageClicked(long evaluationId);
@@ -37,9 +41,11 @@ public class StudentEvaluationsAdapter extends RecyclerView.Adapter<StudentEvalu
         void onNoteClick(long evaluationId);
     }
 
-    public StudentEvaluationsAdapter(OnNoteClickListener noteClickListener, OnForceAverageClickListener forceAverageListener) {
+    public StudentEvaluationsAdapter(long studentId, OnNoteClickListener noteClickListener, OnForceAverageClickListener forceAverageListener, EvaluationService evaluationService) {
+        this.studentId = studentId;
         this.noteClickListener = noteClickListener;
         this.forceAverageListener = forceAverageListener;
+        this.evaluationService = evaluationService; // Passer une instance existante du service
     }
 
     public void setOnNoteClickListener(OnNoteClickListener listener) {
@@ -74,7 +80,7 @@ public class StudentEvaluationsAdapter extends RecyclerView.Adapter<StudentEvalu
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_student_evaluation, parent, false);
-        return new ViewHolder(view); // Pas besoin de passer l'adaptateur ici
+        return new ViewHolder(view);
     }
 
     @Override
@@ -101,8 +107,7 @@ public class StudentEvaluationsAdapter extends RecyclerView.Adapter<StudentEvalu
                 } else {
                     expand(evaluation);
                 }
-                // Rafraîchir le ViewHolder après modification
-                notifyItemChanged(position);
+                notifyItemChanged(position); // Mettre à jour l'icône après modification
             }
         });
 
@@ -120,7 +125,6 @@ public class StudentEvaluationsAdapter extends RecyclerView.Adapter<StudentEvalu
             }
         });
     }
-
 
     @Override
     public int getItemCount() {
@@ -171,22 +175,60 @@ public class StudentEvaluationsAdapter extends RecyclerView.Adapter<StudentEvalu
         }
 
         public void bind(Evaluation evaluation, Note note) {
+            Log.d("StudentEvaluationsAdapter", "Binding evaluation: " + evaluation.getName() + ", isLeaf: " + evaluation.isLeaf());
+
             textEvaluationName.setText(evaluation.getName());
 
             if (note != null && note.getNoteValue() != null) {
-                textEvaluationNote.setText(String.format(Locale.getDefault(), "%.2f / %d", note.getNoteValue(), evaluation.getPointsMax()));
+                Log.d("StudentEvaluationsAdapter", "Note for " + evaluation.getName() + ": " + note.getNoteValue());
+                textEvaluationNote.setText(String.format(
+                        Locale.getDefault(),
+                        "%.2f / %d",
+                        note.getNoteValue(),
+                        evaluation.getPointsMax()
+                ));
+            } else if (!evaluation.isLeaf()) {
+                textEvaluationNote.setText("Calcul en cours...");
+                evaluationService.calculateWeightedAverageAsync(studentId, evaluation.getId(), new EvaluationService.Callback<Double>() {
+                    @Override
+                    public void onResult(Double result) {
+                        textEvaluationNote.post(() -> {
+                            double roundedResult = Math.round(result * 2) / 2.0;
+                            Log.d("StudentEvaluationsAdapter", "Calculated average for " + evaluation.getName() + ": " + roundedResult);
+                            textEvaluationNote.setText(String.format(
+                                    Locale.getDefault(),
+                                    "Moyenne : %.1f / %d",
+                                    roundedResult,
+                                    evaluation.getPointsMax()
+                            ));
+                        });
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+                        Log.e("StudentEvaluationsAdapter", "Error calculating average for " + evaluation.getName(), e);
+                        textEvaluationNote.post(() -> textEvaluationNote.setText("Erreur de calcul"));
+                    }
+                });
             } else {
-                textEvaluationNote.setText(evaluation.isLeaf() ? "Non noté" : "Évaluation parente");
+                Log.d("StudentEvaluationsAdapter", "No note available for " + evaluation.getName());
+                textEvaluationNote.setText("Non noté");
             }
 
             if (evaluation.isLeaf()) {
                 iconExpand.setVisibility(View.GONE);
             } else {
                 iconExpand.setVisibility(View.VISIBLE);
-                // Mettre à jour l'icône en fonction de l'état actuel
-                iconExpand.setImageResource(expandedEvaluationIds.contains(evaluation.getId()) ? R.drawable.ic_expand_less : R.drawable.ic_expand_more);
+                iconExpand.setImageResource(
+                        expandedEvaluationIds.contains(evaluation.getId())
+                                ? R.drawable.ic_expand_less
+                                : R.drawable.ic_expand_more
+                );
             }
         }
 
+
     }
+
+
 }

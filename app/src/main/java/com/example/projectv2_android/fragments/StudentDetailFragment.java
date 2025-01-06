@@ -25,6 +25,7 @@ import com.example.projectv2_android.models.Note;
 import com.example.projectv2_android.repositories.EvaluationRepository;
 import com.example.projectv2_android.repositories.NoteRepository;
 import com.example.projectv2_android.db.AppDatabase;
+import com.example.projectv2_android.services.EvaluationService;
 
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -43,6 +44,7 @@ public class StudentDetailFragment extends Fragment {
     private StudentEvaluationsAdapter adapter;
     private NoteController noteController;
     private EvaluationRepository evaluationRepository;
+    private EvaluationService evaluationService;
 
     public StudentDetailFragment() {
         // Required empty public constructor
@@ -65,17 +67,15 @@ public class StudentDetailFragment extends Fragment {
             classId = getArguments().getLong(ARG_CLASS_ID, -1);
         }
 
-        // Vérifiez que les IDs sont corrects
-        Log.d("StudentDetailFragment", "onCreate - studentId: " + studentId + ", classId: " + classId);
-
+        // Initialiser les repositories et les services
         NoteRepository noteRepository = new NoteRepository(AppDatabase.getInstance(requireContext()).noteDao());
         evaluationRepository = new EvaluationRepository(
                 AppDatabase.getInstance(requireContext()).evaluationDao(),
                 noteRepository
         );
         noteController = new NoteController(noteRepository);
+        evaluationService = new EvaluationService(evaluationRepository, noteRepository);
     }
-
 
     @Nullable
     @Override
@@ -86,7 +86,7 @@ public class StudentDetailFragment extends Fragment {
         recyclerView = view.findViewById(R.id.recycler_evaluations);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new StudentEvaluationsAdapter(this::onEvaluationClicked, this::onForceAverageClicked);
+        adapter = new StudentEvaluationsAdapter(studentId,this::onEvaluationClicked, this::onForceAverageClicked, evaluationService);
         recyclerView.setAdapter(adapter);
 
         // Ajout du clic pour modifier ou ajouter une note
@@ -135,8 +135,6 @@ public class StudentDetailFragment extends Fragment {
         });
     }
 
-
-
     private void onEvaluationClicked(long evaluationId) {
         // Ajout d'un log pour vérifier les IDs
         Log.d("StudentDetailFragment", "onEvaluationClicked - studentId: " + studentId + ", evaluationId: " + evaluationId);
@@ -160,7 +158,6 @@ public class StudentDetailFragment extends Fragment {
         dialog.show(getParentFragmentManager(), "EditNoteDialog");
     }
 
-
     private void onForceAverageClicked(long evaluationId) {
         // Ouvre le dialog pour forcer une moyenne
         ForceNoteDialogFragment dialog = ForceNoteDialogFragment.newInstance(evaluationId);
@@ -175,12 +172,6 @@ public class StudentDetailFragment extends Fragment {
             });
         });
         dialog.show(getParentFragmentManager(), "ForceAverageDialog");
-    }
-
-    private void checkIfEmpty() {
-        if (adapter.getItemCount() == 0) {
-            showToast("Aucune évaluation trouvée pour cet étudiant.");
-        }
     }
 
     private void showToast(String message) {
