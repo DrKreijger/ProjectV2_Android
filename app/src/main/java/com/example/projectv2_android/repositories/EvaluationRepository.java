@@ -1,12 +1,9 @@
 package com.example.projectv2_android.repositories;
 
-import android.util.Log;
-
 import com.example.projectv2_android.dao.EvaluationDao;
 import com.example.projectv2_android.models.Evaluation;
 import com.example.projectv2_android.models.EvaluationEntity;
 import com.example.projectv2_android.models.LeafEvaluation;
-import com.example.projectv2_android.models.Note;
 import com.example.projectv2_android.models.ParentEvaluation;
 
 import java.util.ArrayList;
@@ -22,10 +19,8 @@ public class EvaluationRepository {
     }
 
     public long insertEvaluation(Evaluation evaluation) {
-        Log.d("EvaluationRepository", "Insertion : " + evaluation.getName() + " | Parent ID : " + evaluation.getParentId());
         EvaluationEntity entity = mapToEntity(evaluation);
         long id = evaluationDao.insertEvaluation(entity); // La méthode insert doit renvoyer un ID non nul
-        Log.d("EvaluationRepository", "ID généré pour l'évaluation : " + id);
         return id;
     }
 
@@ -37,17 +32,12 @@ public class EvaluationRepository {
 
     public List<Evaluation> getAllEvaluationsForClass(long classId) {
         List<EvaluationEntity> entities = evaluationDao.getEvaluationsForClass(classId);
-        for (EvaluationEntity entity : entities) {
-            Log.d("EvaluationRepository", "Évaluation récupérée : " + entity.getName() + " | ID : " + entity.getId());
-        }
         return mapToEvaluations(entities);
     }
 
 
     public List<Evaluation> getChildEvaluations(long parentId) {
-        Log.d("EvaluationRepository", "Récupération des enfants pour parent ID : " + parentId);
         List<EvaluationEntity> entities = evaluationDao.getChildEvaluations(parentId);
-        Log.d("EvaluationRepository", "Nombre d'enfants trouvés : " + entities.size());
         return mapToEvaluations(entities);
     }
 
@@ -64,8 +54,6 @@ public class EvaluationRepository {
 
     private Evaluation mapToEvaluation(EvaluationEntity entity) {
         if (entity == null) return null;
-
-        Log.d("EvaluationRepository", "Mapping EvaluationEntity -> Evaluation | ID : " + entity.getId());
 
         if (isParentEvaluation(entity)) {
             List<Evaluation> children = mapToEvaluations(evaluationDao.getChildEvaluations(entity.getId()));
@@ -152,7 +140,6 @@ public class EvaluationRepository {
         }
 
         List<EvaluationEntity> evaluationEntities = evaluationDao.getEvaluationsForStudent(studentId);
-        Log.d("EvaluationRepository", "Évaluations récupérées pour l'étudiant " + studentId + " : " + evaluationEntities.size());
 
         return mapToEvaluations(evaluationEntities);
     }

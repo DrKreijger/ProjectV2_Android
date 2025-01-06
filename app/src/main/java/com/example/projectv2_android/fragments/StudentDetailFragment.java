@@ -1,6 +1,11 @@
 package com.example.projectv2_android.fragments;
 
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -8,23 +13,16 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
-import android.widget.Toast;
-
 import com.example.projectv2_android.R;
 import com.example.projectv2_android.adapters.StudentEvaluationsAdapter;
 import com.example.projectv2_android.controllers.NoteController;
+import com.example.projectv2_android.db.AppDatabase;
 import com.example.projectv2_android.dialogs.EditNoteDialogFragment;
 import com.example.projectv2_android.dialogs.ForceNoteDialogFragment;
 import com.example.projectv2_android.models.Evaluation;
 import com.example.projectv2_android.models.Note;
 import com.example.projectv2_android.repositories.EvaluationRepository;
 import com.example.projectv2_android.repositories.NoteRepository;
-import com.example.projectv2_android.db.AppDatabase;
 import com.example.projectv2_android.services.EvaluationService;
 
 import java.util.List;
@@ -134,17 +132,14 @@ public class StudentDetailFragment extends Fragment {
                     }
                 });
             } catch (Exception e) {
-                Log.e("StudentDetailFragment", "Erreur lors du chargement des évaluations ou des notes", e);
                 showToast("Erreur : données incohérentes pour les évaluations et les notes");
             }
         });
     }
 
     private void onEvaluationClicked(long evaluationId) {
-        Log.d("StudentDetailFragment", "onEvaluationClicked - studentId: " + studentId + ", evaluationId: " + evaluationId);
 
         if (studentId <= 0 || evaluationId <= 0) {
-            Log.e("StudentDetailFragment", "Invalid IDs: studentId=" + studentId + ", evaluationId=" + evaluationId);
             showToast("Erreur : ID invalide.");
             return;
         }
@@ -176,7 +171,6 @@ public class StudentDetailFragment extends Fragment {
                     noteController.forceNoteForEvaluation(studentId, evaluationId, forcedNote);
                     updateUI(this::loadStudentEvaluations);
                 } catch (Exception e) {
-                    Log.e("StudentDetailFragment", "Erreur lors de la mise à jour de la note forcée", e);
                     showToast("Erreur : impossible de forcer la note.");
                 }
             });

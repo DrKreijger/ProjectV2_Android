@@ -2,7 +2,6 @@ package com.example.projectv2_android.dialogs;
 
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,11 +18,11 @@ import androidx.fragment.app.DialogFragment;
 import com.example.projectv2_android.R;
 import com.example.projectv2_android.controllers.EvaluationController;
 import com.example.projectv2_android.db.AppDatabase;
+import com.example.projectv2_android.models.Evaluation;
 import com.example.projectv2_android.models.LeafEvaluation;
 import com.example.projectv2_android.repositories.EvaluationRepository;
 import com.example.projectv2_android.repositories.NoteRepository;
 import com.example.projectv2_android.services.EvaluationService;
-import com.example.projectv2_android.models.Evaluation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -136,10 +135,6 @@ public class AddEvaluationDialogFragment extends DialogFragment {
                     } catch (NumberFormatException e) {
                         Toast.makeText(getContext(), "Points maximum invalides pour une sous-évaluation.", Toast.LENGTH_SHORT).show();
                         return;
-                    }
-                    Log.d("AddEvaluationDialog", "Nombre de sous-évaluations : " + subEvaluations.size());
-                    for (Evaluation eval : subEvaluations) {
-                        Log.d("AddEvaluationDialog", "Sous-évaluation : " + eval.getName() + " | Points Max : " + eval.getPointsMax());
                     }
 
                     subEvaluations.add(new LeafEvaluation(

@@ -1,7 +1,5 @@
 package com.example.projectv2_android.services;
 
-import android.util.Log;
-
 import com.example.projectv2_android.models.Evaluation;
 import com.example.projectv2_android.models.LeafEvaluation;
 import com.example.projectv2_android.models.Note;
@@ -50,7 +48,6 @@ public class EvaluationService {
      * Calcule la moyenne pondérée d'une évaluation (parent ou feuille).
      */
     public double calculateWeightedAverage(long studentId, long evaluationId) {
-        Log.d("EvaluationService", "Calculating weighted average for evaluationId: " + evaluationId);
 
         if (evaluationId <= 0) {
             throw new IllegalArgumentException("L'ID de l'évaluation doit être valide !");
@@ -58,16 +55,13 @@ public class EvaluationService {
 
         Evaluation evaluation = evaluationRepository.findById(evaluationId);
         if (evaluation == null) {
-            Log.e("EvaluationService", "Aucune évaluation trouvée avec l'ID : " + evaluationId);
             return 0.0;
         }
 
         if (evaluation instanceof ParentEvaluation) {
             List<Evaluation> children = evaluationRepository.getChildEvaluations(evaluationId);
-            Log.d("EvaluationService", "ParentEvaluation " + evaluation.getName() + " has " + children.size() + " children.");
 
             if (children == null || children.isEmpty()) {
-                Log.w("EvaluationService", "L'évaluation parent ID " + evaluationId + " n'a pas d'enfants.");
                 return 0.0;
             }
 
@@ -75,9 +69,7 @@ public class EvaluationService {
             double totalWeight = 0.0;
 
             for (Evaluation child : children) {
-                Log.d("EvaluationService", "Processing child evaluation: " + child.getName());
                 double childScore = calculateWeightedAverage(studentId, child.getId());
-                Log.d("EvaluationService", "Child " + child.getName() + " score: " + childScore);
 
                 // Pondération basée sur les points max de l'enfant
                 totalWeightedScore += childScore * child.getPointsMax();
@@ -89,24 +81,19 @@ public class EvaluationService {
                 double weightedAverage = totalWeightedScore / totalWeight;
                 double scaledAverage = weightedAverage * evaluation.getPointsMax() / totalWeight;
 
-                Log.d("EvaluationService", "Calculated average for ParentEvaluation " + evaluation.getName() + ": " + scaledAverage);
                 return scaledAverage;
             } else {
-                Log.w("EvaluationService", "Total weight is zero for ParentEvaluation " + evaluation.getName());
                 return 0.0;
             }
         } else if (evaluation instanceof LeafEvaluation) {
             Note note = noteRepository.getNoteForStudentEvaluation(studentId, evaluationId);
             if (note != null && note.getNoteValue() != null) {
-                Log.d("EvaluationService", "LeafEvaluation " + evaluation.getName() + " note: " + note.getNoteValue());
                 return note.getNoteValue();
             } else {
-                Log.d("EvaluationService", "No note found for LeafEvaluation " + evaluation.getName());
                 return 0.0;
             }
         }
 
-        Log.w("EvaluationService", "Type d'évaluation inconnu pour l'ID : " + evaluationId);
         return 0.0;
     }
 
@@ -137,7 +124,6 @@ public class EvaluationService {
         for (Evaluation child : children) {
             child.setParentId(parentIdGenerated);
             evaluationRepository.insertEvaluation(child);
-            Log.d("EvaluationService", "Sous-évaluation ajoutée : " + child.getName() + " avec parentId : " + parentIdGenerated);
         }
 
         return parentIdGenerated;

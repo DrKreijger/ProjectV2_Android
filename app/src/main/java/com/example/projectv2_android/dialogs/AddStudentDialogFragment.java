@@ -4,7 +4,6 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -82,7 +81,6 @@ public class AddStudentDialogFragment extends DialogFragment {
             studentController = new StudentController(studentService);
 
         } catch (Exception e) {
-            Log.e(TAG, "Error initializing dependencies: " + e.getMessage(), e);
             Toast.makeText(requireContext(), R.string.error_initializing_dependencies, Toast.LENGTH_SHORT).show();
             dismiss();
             return;
@@ -118,10 +116,8 @@ public class AddStudentDialogFragment extends DialogFragment {
                         }
                     });
                 } catch (IllegalArgumentException e) {
-                    Log.e(TAG, "Validation error: " + e.getMessage());
                     requireActivity().runOnUiThread(() -> Toast.makeText(requireContext(), e.getMessage(), Toast.LENGTH_SHORT).show());
                 } catch (Exception e) {
-                    Log.e(TAG, "Error adding student: " + e.getMessage(), e);
                     requireActivity().runOnUiThread(() -> Toast.makeText(requireContext(), R.string.error_adding_student, Toast.LENGTH_SHORT).show());
                 }
             });

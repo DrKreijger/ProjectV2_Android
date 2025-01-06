@@ -1,7 +1,6 @@
 package com.example.projectv2_android.fragments;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -72,7 +71,6 @@ public class StudentsListFragment extends Fragment {
             // Initialisation du controller
             studentController = new StudentController(studentService);
         } catch (Exception e) {
-            Log.e(TAG, "Error initializing dependencies: " + e.getMessage(), e);
             Toast.makeText(requireContext(), "Erreur d'initialisation", Toast.LENGTH_SHORT).show();
         }
     }
@@ -116,7 +114,6 @@ public class StudentsListFragment extends Fragment {
                     adapter.setData(students);
                 });
             } catch (Exception e) {
-                Log.e(TAG, "Error loading students: " + e.getMessage(), e);
                 requireActivity().runOnUiThread(() -> {
                     Toast.makeText(requireContext(), "Erreur lors du chargement des étudiants", Toast.LENGTH_SHORT).show();
                 });

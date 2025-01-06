@@ -1,7 +1,6 @@
 package com.example.projectv2_android.dialogs;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,7 +33,6 @@ public class EditNoteDialogFragment extends DialogFragment {
     private NoteRepository noteRepository;
 
     public static EditNoteDialogFragment newInstance(long studentId, long evaluationId) {
-        Log.d("EditNoteDialogFragment", "newInstance - studentId=" + studentId + ", evaluationId=" + evaluationId);
         EditNoteDialogFragment fragment = new EditNoteDialogFragment();
         Bundle args = new Bundle();
         args.putLong("studentId", studentId);
@@ -62,11 +60,8 @@ public class EditNoteDialogFragment extends DialogFragment {
             evaluationId = getArguments().getLong("evaluationId", -1);
         }
 
-        Log.d(TAG, "onCreateView: studentId=" + studentId + ", evaluationId=" + evaluationId);
-
         // Validation des IDs
         if (studentId <= 0 || evaluationId <= 0) {
-            Log.e(TAG, "Invalid studentId or evaluationId: studentId=" + studentId + ", evaluationId=" + evaluationId);
             Toast.makeText(requireContext(), "IDs invalides. Impossible de sauvegarder la note.", Toast.LENGTH_SHORT).show();
             dismiss();
         }
@@ -95,7 +90,6 @@ public class EditNoteDialogFragment extends DialogFragment {
                 saveNoteInDatabase(noteValue);
 
             } catch (NumberFormatException e) {
-                Log.e(TAG, "Invalid note value: " + noteValueStr, e);
                 Toast.makeText(requireContext(), "Veuillez entrer une valeur numérique valide", Toast.LENGTH_SHORT).show();
             }
         });
@@ -107,11 +101,9 @@ public class EditNoteDialogFragment extends DialogFragment {
     private void saveNoteInDatabase(double noteValue) {
         Executors.newSingleThreadExecutor().execute(() -> {
             try {
-                Log.d(TAG, "saveNoteInDatabase - studentId=" + studentId + ", evaluationId=" + evaluationId + ", noteValue=" + noteValue);
 
                 Note note = noteRepository.getNoteForStudentEvaluation(studentId, evaluationId);
                 if (note == null) {
-                    Log.d(TAG, "Creating a new note for studentId=" + studentId + ", evaluationId=" + evaluationId);
                     note = new Note();
                     note.setStudentId(studentId);
                     note.setEvalId(evaluationId);
@@ -119,7 +111,6 @@ public class EditNoteDialogFragment extends DialogFragment {
 
                 note.setNoteValue(noteValue);
                 long noteId = noteRepository.insertOrUpdate(note);
-                Log.d(TAG, "Note saved with ID: " + noteId);
 
                 requireActivity().runOnUiThread(() -> {
                     Toast.makeText(requireContext(), "Note enregistrée avec succès", Toast.LENGTH_SHORT).show();
@@ -130,7 +121,6 @@ public class EditNoteDialogFragment extends DialogFragment {
                 });
 
             } catch (Exception e) {
-                Log.e(TAG, "Erreur lors de l'enregistrement de la note", e);
                 requireActivity().runOnUiThread(() -> {
                     Toast.makeText(requireContext(), "Erreur lors de l'enregistrement de la note", Toast.LENGTH_SHORT).show();
                 });

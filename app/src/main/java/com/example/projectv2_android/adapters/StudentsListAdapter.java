@@ -1,6 +1,5 @@
 package com.example.projectv2_android.adapters;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -56,9 +55,6 @@ public class StudentsListAdapter extends RecyclerView.Adapter<StudentsListAdapte
         if (position >= 0 && position < studentList.size()) {
             Student student = studentList.get(position);
             holder.bind(student);
-        } else {
-            // Log en cas d'incohérence
-            Log.w("StudentsListAdapter", "Index " + position + " out of bounds for studentList.");
         }
     }
 
