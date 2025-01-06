@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -18,6 +19,7 @@ import com.example.projectv2_android.controllers.EvaluationController;
 import com.example.projectv2_android.db.AppDatabase;
 import com.example.projectv2_android.dialogs.AddEvaluationDialogFragment;
 import com.example.projectv2_android.models.Evaluation;
+import com.example.projectv2_android.repositories.ClassRepository;
 import com.example.projectv2_android.repositories.EvaluationRepository;
 import com.example.projectv2_android.repositories.NoteRepository;
 import com.example.projectv2_android.services.EvaluationService;
@@ -81,6 +83,7 @@ public class EvaluationsListFragment extends Fragment {
             dialog.show(getParentFragmentManager(), "AddEvaluationDialog");
         });
 
+        loadClassName(view);
         loadEvaluations();
         return view;
     }
@@ -97,5 +100,39 @@ public class EvaluationsListFragment extends Fragment {
             }
         });
     }
+
+    private void loadClassName(View view) {
+        TextView classNameTextView = view.findViewById(R.id.text_evaluation_list_title);
+
+        if (classNameTextView == null) {
+            Toast.makeText(requireContext(), "Erreur : TextView introuvable", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                // Charger le nom de la classe depuis le repository
+                ClassRepository classRepository = new ClassRepository(AppDatabase.getInstance(requireContext()).classDao());
+                String className = classRepository.getClassNameById(classId);
+
+                if (className == null || className.isEmpty()) {
+                    className = "Classe inconnue"; // Valeur par défaut
+                }
+
+                // Obtenir la chaîne formatée depuis les ressources
+                String displayText = getString(R.string.evaluation_list_title, className);
+
+                requireActivity().runOnUiThread(() -> classNameTextView.setText(displayText));
+            } catch (Exception e) {
+                requireActivity().runOnUiThread(() -> {
+                    classNameTextView.setText(getString(R.string.evaluation_list_title, "Classe inconnue"));
+                    Toast.makeText(requireContext(), "Erreur lors du chargement de la classe", Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
+    }
+
+
+
 
 }

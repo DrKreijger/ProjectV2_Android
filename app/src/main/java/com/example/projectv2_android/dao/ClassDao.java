@@ -19,6 +19,9 @@ public interface ClassDao {
     @Query("SELECT * FROM Class")
     List<Class> getAllClasses();
 
+    @Query("SELECT name FROM Class WHERE id = :classId")
+    String getClassNameById(long classId);
+
     @Query("DELETE FROM Class WHERE id = :id")
     int deleteClass(long id);
 }

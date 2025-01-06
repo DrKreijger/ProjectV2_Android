@@ -24,6 +24,10 @@ public class ClassRepository {
         return classDao.getAllClasses();
     }
 
+    public String getClassNameById(long classId) {
+        return classDao.getClassNameById(classId); // Méthode dans ClassDao
+    }
+
     public int deleteClass(long id) {
         return classDao.deleteClass(id);
     }
