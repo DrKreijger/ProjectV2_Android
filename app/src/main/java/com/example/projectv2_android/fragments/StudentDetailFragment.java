@@ -21,8 +21,10 @@ import com.example.projectv2_android.dialogs.EditNoteDialogFragment;
 import com.example.projectv2_android.dialogs.ForceNoteDialogFragment;
 import com.example.projectv2_android.models.Evaluation;
 import com.example.projectv2_android.models.Note;
+import com.example.projectv2_android.models.Student;
 import com.example.projectv2_android.repositories.EvaluationRepository;
 import com.example.projectv2_android.repositories.NoteRepository;
+import com.example.projectv2_android.repositories.StudentRepository;
 import com.example.projectv2_android.services.EvaluationService;
 
 import java.util.List;
@@ -95,6 +97,7 @@ public class StudentDetailFragment extends Fragment {
         // Ajout du clic pour modifier ou ajouter une note
         adapter.setOnNoteClickListener(this::onEvaluationClicked);
 
+
         return view;
     }
 
@@ -108,15 +111,32 @@ public class StudentDetailFragment extends Fragment {
     private void loadStudentDetails() {
         Executors.newSingleThreadExecutor().execute(() -> {
             try {
-                // Simuler la récupération des détails de l'étudiant
-                String studentName = "Étudiant #" + studentId; // Remplacez par une requête réelle
+                // Récupérer les informations de l'étudiant depuis la base de données
+                StudentRepository studentRepository = new StudentRepository(AppDatabase.getInstance(requireContext()).studentDao());
+                Student student = studentRepository.findById(studentId);
 
-                updateUI(() -> textStudentName.setText(studentName));
+                if (student != null) {
+                    // Formater le titre avec le prénom et nom de l'étudiant
+                    String formattedTitle = getString(R.string.student_detail_title, student.getFirstName() + " " + student.getName());
+
+                    // Mettre à jour l'interface utilisateur
+                    updateUI(() -> textStudentName.setText(formattedTitle));
+                } else {
+                    // Si l'étudiant n'est pas trouvé
+                    updateUI(() -> {
+                        textStudentName.setText(getString(R.string.student_detail_title, "Inconnu"));
+                        showToast("Étudiant introuvable");
+                    });
+                }
             } catch (Exception e) {
-                showToast("Erreur lors du chargement des détails de l'étudiant");
+                updateUI(() -> {
+                    textStudentName.setText(getString(R.string.student_detail_title, "Inconnu"));
+                    showToast("Erreur lors du chargement des détails de l'étudiant");
+                });
             }
         });
     }
+
 
     private void loadStudentEvaluations() {
         Executors.newSingleThreadExecutor().execute(() -> {
